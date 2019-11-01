@@ -405,3 +405,108 @@ def fourier_calc(nmax,tsize,b,phi):
             np.sqrt(veca[m+1, :]**2 + vecb[m, :]**2)
         phases[m+1,:] = np.arctan2(vecb[m, :], veca[m+1, :])
     return amps
+
+## Plots the toroidal current for a shot
+# @param psi_dict A psi-tet dictionary
+def plot_itor(psi_dict,j,color):
+    itor = psi_dict['tcurr']/1000.0
+    t0 = psi_dict['t0']
+    tf = psi_dict['tf']
+    time = psi_dict['time']*1000.0
+    plt.figure(75000,figsize=(figx, figy))
+    plt.subplot(2,2,j)
+    plt.plot(time,abs(itor),color=color,linewidth=lw,label=r'$I_{tor}$', \
+        path_effects=[pe.Stroke(linewidth=lw+4,foreground='k'), \
+        pe.Normal()])
+    plt.plot(time,np.sqrt((psi_dict['curr01']/1000.0)**2+(psi_dict['curr02']/1000.0)**2), \
+        color=color,alpha=0.4,linewidth=lw,label=r'$\sqrt{(I^{inj}_x)^2+(I^{inj}_y)^2}$', \
+        path_effects=[pe.Stroke(linewidth=lw+4,foreground='k'),pe.Normal()])
+
+    #plt.plot(time,dict['curr02']/1000.0,'k',alpha=0.5,linewidth=lw,label=r'$I_y$')
+    if j == 1:
+        plt.legend(edgecolor='k',facecolor='white',fontsize=ls,loc='upper right')
+    #plt.axvline(x=time[t0],color='k')
+    #plt.axvline(x=time[tf],color='k')
+    #plt.xlabel('Time (ms)', fontsize=fs)
+    #plt.ylabel(r'$I_{tor}$ (kA)', fontsize=fs)
+    plt.grid(True)
+    ax = plt.gca()
+    ax.set_yticks([0,20,40])
+    if j == 1 or j == 3:
+        ax.set_yticklabels(['0','20','40'])
+    else:
+        ax.set_yticklabels([])
+    if j == 1 or j == 2:
+        ax.set_xticklabels([])
+    ax.tick_params(axis='both', which='major', labelsize=ts)
+    ax.tick_params(axis='both', which='minor', labelsize=ts)
+    plt.savefig(out_dir+'toroidal_current.png')
+    plt.savefig(out_dir+'toroidal_current.eps')
+    plt.savefig(out_dir+'toroidal_current.pdf')
+    plt.savefig(out_dir+'toroidal_current.svg')
+
+## Plots the BD chronos for a shot
+# @param psi_dict A psi-tet dictionary
+def plot_chronos(psi_dict,j,color):
+    Vh = np.transpose(np.conj(psi_dict['V']))
+    S = psi_dict['S']
+    t0 = psi_dict['t0']
+    tf = psi_dict['tf']
+    time = psi_dict['sp_time'][t0:tf]*1000.0
+    alphas = np.flip(np.linspace(0.3,1.0,3))
+    plt.figure(85000,figsize=(figx, figy))
+    plt.subplot(2,2,j)
+    for i in range(3):
+        plt.plot(time,S[i]*Vh[i,:]*1e4/S[0],color=color,linewidth=lw, alpha=alphas[i], \
+            path_effects=[pe.Stroke(linewidth=lw+4,foreground='k'), \
+            pe.Normal()],label='BOD mode '+str(i+1))
+    if j == 1:
+        plt.legend(edgecolor='k',facecolor='white',fontsize=ls,loc='upper right')
+    #plt.axvline(x=time[t0],color='k')
+    #plt.axvline(x=time[tf],color='k')
+    #plt.xlabel('Time (ms)', fontsize=fs)
+    #h = plt.ylabel(r'$\frac{\Sigma_{kk}}{\Sigma_{00}}V_{ki}^*$', fontsize=fs)
+    #h.set_rotation(0)
+    plt.grid(True)
+    plt.ylim(-1500,1500)
+    ax = plt.gca()
+    ax.set_yticks([-1000,-500,0,500,1000])
+    if j == 1 or j == 3:
+        ax.set_yticklabels(['-1000','-500','0','500','1000'])
+    else:
+        ax.set_yticklabels([])
+    if j == 1 or j == 2:
+        ax.set_xticklabels([])
+    ax.tick_params(axis='both', which='major', labelsize=ts)
+    ax.tick_params(axis='both', which='minor', labelsize=ts)
+    plt.savefig(out_dir+'BD_chronos.png')
+    plt.savefig(out_dir+'BD_chronos.eps')
+    plt.savefig(out_dir+'BD_chronos.pdf')
+    plt.savefig(out_dir+'BD_chronos.svg')
+    plt.figure(95000,figsize=(figx, figy))
+    plt.subplot(2,2,j)
+    plt.semilogy(range(1,len(S)+1),S/S[0],color=color,marker='o', \
+        markersize=ms,markeredgecolor='k')
+    plt.semilogy(range(1,len(S)+1),S/S[0],color=color)
+    #plt.axvline(x=time[t0],color='k')
+    #plt.axvline(x=time[tf],color='k')
+    #plt.xlabel('Mode Number k', fontsize=fs)
+    #h = plt.ylabel(r'$\frac{\Sigma_{kk}}{\Sigma_{00}}$', fontsize=fs)
+    #h.set_rotation(0)
+    plt.grid(True)
+    plt.ylim([1e-2,2e0])
+    ax = plt.gca()
+    ax.set_yticks([1e-2,1e-1,1e0])
+    if j == 1 or j == 3:
+        ax.set_yticklabels([r'$10^{-2}$',r'$10^{-1}$',r'$10^{0}$'])
+    else:
+        ax.set_yticklabels([])
+    plt.xlim([0,20])
+    if j == 1 or j == 2:
+        ax.set_xticklabels([])
+    ax.tick_params(axis='both', which='major', labelsize=ts)
+    ax.tick_params(axis='both', which='minor', labelsize=ts)
+    plt.savefig(out_dir+'BD.png')
+    plt.savefig(out_dir+'BD.eps')
+    plt.savefig(out_dir+'BD.pdf')
+    plt.savefig(out_dir+'BD.svg')
