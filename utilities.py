@@ -528,7 +528,7 @@ def plot_chronos(psi_dict,j,color):
         pe.Normal()],label=r'$T_i$')
     if 'te' in psi_dict.keys():
         plt.plot(time,psi_dict['te'][t0:tf],color=color, \
-            linewidth=lw, alpha=0.6, \
+            linewidth=lw, alpha=0.4, \
             path_effects=[pe.Stroke(linewidth=lw+4,foreground='k'), \
             pe.Normal()],label=r'$T_e$')
     if j == 1:
@@ -541,9 +541,9 @@ def plot_chronos(psi_dict,j,color):
     plt.grid(True)
     #plt.ylim(-1500,1500)
     ax = plt.gca()
-    ax.set_yticks([0,5,10,15])
+    ax.set_yticks([0,10,20,30,40])
     if j == 1 or j == 3:
-        ax.set_yticklabels(['0','5','10','15'])
+        ax.set_yticklabels(['0','10','20','30','40'])
     else:
         ax.set_yticklabels([])
     ax.set_xticks([0,0.5,1.0])
