@@ -510,3 +510,50 @@ def plot_chronos(psi_dict,j,color):
     plt.savefig(out_dir+'BD.eps')
     plt.savefig(out_dir+'BD.pdf')
     plt.savefig(out_dir+'BD.svg')
+
+## Plots the average electron and ion temperatures for a shot
+# @param psi_dict A psi-tet dictionary
+def plot_chronos(psi_dict,j,color):
+    Vh = np.transpose(np.conj(psi_dict['V']))
+    S = psi_dict['S']
+    t0 = psi_dict['t0']
+    tf = psi_dict['tf']
+    time = psi_dict['sp_time'][t0:tf]*1000.0
+    alphas = np.flip(np.linspace(0.3,1.0,3))
+    plt.figure(105000,figsize=(figx, figy))
+    plt.subplot(2,2,j)
+    plt.plot(time,psi_dict['ti'][t0:tf],color=color, \
+        linewidth=lw, alpha=1.0, \
+        path_effects=[pe.Stroke(linewidth=lw+4,foreground='k'), \
+        pe.Normal()],label=r'$T_i$')
+    if 'te' in psi_dict.keys():
+        plt.plot(time,psi_dict['te'][t0:tf],color=color, \
+            linewidth=lw, alpha=0.6, \
+            path_effects=[pe.Stroke(linewidth=lw+4,foreground='k'), \
+            pe.Normal()],label=r'$T_e$')
+    if j == 1:
+        plt.legend(edgecolor='k',facecolor='white',fontsize=ls,loc='lower right')
+    #plt.axvline(x=time[t0],color='k')
+    #plt.axvline(x=time[tf],color='k')
+    #plt.xlabel('Time (ms)', fontsize=fs)
+    #h = plt.ylabel(r'$\frac{\Sigma_{kk}}{\Sigma_{00}}V_{ki}^*$', fontsize=fs)
+    #h.set_rotation(0)
+    plt.grid(True)
+    #plt.ylim(-1500,1500)
+    ax = plt.gca()
+    ax.set_yticks([0,5,10,15])
+    if j == 1 or j == 3:
+        ax.set_yticklabels(['0','5','10','15'])
+    else:
+        ax.set_yticklabels([])
+    ax.set_xticks([0,0.5,1.0])
+    if j == 1 or j == 2:
+        ax.set_xticklabels([])
+    else:
+        ax.set_xticklabels(['0','0.5','1'])
+    ax.tick_params(axis='both', which='major', labelsize=ts)
+    ax.tick_params(axis='both', which='minor', labelsize=ts)
+    plt.savefig(out_dir+'temperatures.png')
+    plt.savefig(out_dir+'temperatures.eps')
+    plt.savefig(out_dir+'temperatures.pdf')
+    plt.savefig(out_dir+'temperatures.svg')
