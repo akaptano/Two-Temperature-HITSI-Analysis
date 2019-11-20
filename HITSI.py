@@ -8,6 +8,7 @@ from psitet_load import loadshot
 from utilities import SVD, \
      plot_chronos, plot_itor
 import click
+import os
 
 @click.command()
 @click.option('--directory', \
@@ -23,7 +24,7 @@ import click
     help='A list of all the injector frequencies (kHz) which '+ \
         'correspond to the list of filenames')
 @click.option('--limits', \
-    default=(0.0,1.0),type=(float,float),multiple=True, \
+    default=(0.0,1.0),type=(float,float), \
     help='Time limits for each of the discharges')
 @click.option('--trunc', \
     default=10,type=int, \
@@ -44,33 +45,35 @@ def analysis(directory,filenames,freqs,limits,trunc):
     print('Frequencies corresponding to those files = ',freqs)
     print('Time limits for each of the files = ',limits)
 
-    is_HITSI3 = False
-    if(len(filenames[0])==9):
-        is_HITSI3=True
     filenames=np.atleast_1d(filenames)
     freqs=np.atleast_1d(freqs)
     total = []
-    for i in range(len(filenames)):
-        filename = filenames[i]
-        f_1 = np.atleast_1d(freqs[i])
-        if filenames[i][0:10]=='Psi-Tet-2T':
-            temp_dict = loadshot('Psi-Tet-2T',directory, \
-                int(f_1),True,True,is_HITSI3,limits[i])
-        elif filenames[i][0:3]=='Psi':
-            temp_dict = loadshot('Psi-Tet',directory, \
-                int(f_1),True,False,is_HITSI3,limits[i])
-        else:
-            temp_dict = loadshot(filename,directory, \
-                np.atleast_1d(int(f_1)),False,False, \
-                is_HITSI3,limits[i])
-        temp_dict['use_IMP'] = False
-        temp_dict['trunc'] = trunc
-        temp_dict['f_1'] = f_1
-        total.append(temp_dict)
+    for j in range(len(filenames)):
+        filename = filenames[j]
+        is_HITSI3 = False
+        if filename[7:9]=='-3':
+            is_HITSI3=True
+        for i in range(len(freqs)):
+            f_1 = np.atleast_1d(freqs[i])
+            print(i,j,filename,f_1,is_HITSI3)
+            if filename[0:10]=='Psi-Tet-2T':
+                temp_dict = loadshot('Psi-Tet-2T',directory, \
+                    int(f_1),True,True,is_HITSI3,limits)
+            elif filename[0:3]=='Psi':
+                temp_dict = loadshot('Psi-Tet',directory, \
+                    int(f_1),True,False,is_HITSI3,limits)
+            else:
+                temp_dict = loadshot(filename,directory, \
+                    np.atleast_1d(int(f_1)),False,False, \
+                    is_HITSI3,limits)
+            temp_dict['use_IMP'] = False
+            temp_dict['trunc'] = trunc
+            temp_dict['f_1'] = f_1
+            total.append(temp_dict)
 
     total = np.asarray(total).flatten()
     color_ind = 0
-    for i in range(len(filenames)):
+    for i in range(len(freqs)):
         if i % 4 == 0 and i != 0:
             color_ind = color_ind + 1
         color = colors2T[color_ind]

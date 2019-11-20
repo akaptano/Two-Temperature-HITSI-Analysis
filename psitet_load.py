@@ -327,7 +327,10 @@ def get_time_limits(dict,limits):
     idx1 = (np.abs(dict['sp_time'] - limits[0]*1e-3)).argmin()
     idx2 = (np.abs(dict['sp_time'] - limits[1]*1e-3)).argmin()
     dict['t0'] = idx1
-    dict['tf'] = idx2
+    if np.max(dict['sp_time'] < limits[1]*1e-3):
+        dict['tf'] = len(dict['sp_time'])-1
+    else:
+        dict['tf'] = idx2
 
 ## Loads a single file into a psi-tet dictionary
 # @param filename Full path name of the file
