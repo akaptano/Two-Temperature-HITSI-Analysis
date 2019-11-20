@@ -6,7 +6,10 @@ import scipy.io as sio
 from psitet import psiObject
 from dataclasses import asdict
 from plot_attributes import *
-
+# @var nchords The number of chords for IDS
+nchords = 108
+# @var npts The number of points per chord for IDS
+npts = 201
 ## Loads a psi-tet mat file using the old format from Tom's scan paper
 # @param fname Name of the base file
 # @param runfolder Name of the folder where the file resides
