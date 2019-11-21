@@ -21,15 +21,15 @@ clabels = ['0',r'$\frac{\pi}{2}$', \
 ## Permeability of free space
 mu0 = 4*pi*10**(-7)
 ## Fontsize for axis labels and titles
-fs = 50
+fs = 40
 ## Fontsize for axis ticks
-ts = 38
+ts = 30
 ## Fontsize for pyplot legends
-ls = 30
+ls = 24
 ## Markersize for scatter plots
-ms = 20
+ms = 18
 ## Linewidth for line plots
-lw = 7
+lw = 1
 ## Figure size in horizontal dir
 figx = 14
 ## Figure size in vertical dir
@@ -41,7 +41,7 @@ transparency = 1.0
 ## Colors to distinguish between dictionaries
 Colors = np.random.rand(100,3)
 ## colors specifically for plotting two-temperature MHD results
-colors2T = ['r','b','g','k','c']
+colors2T = ['r','b','g','m']
 ## Styles to distinguish between discharges with different
 ## injector frequencies
 Styles = ['dashed','dotted','-.','solid',':']

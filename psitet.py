@@ -57,7 +57,7 @@ class psiObject(object):
     te = 0
     ## Toroidal flux
     tflux = 0
-    ## Collisional heating
+    ## thermal energy
     therm = 0
     ## Volume-averaged ion temperature
     ti = 0

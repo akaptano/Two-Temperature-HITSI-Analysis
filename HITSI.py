@@ -6,7 +6,9 @@
 from plot_attributes import *
 from psitet_load import loadshot
 from utilities import SVD, \
-     plot_chronos, plot_itor
+     plot_chronos, plot_itor, \
+     plot_temperatures, plot_nFIR, \
+     plot_centroid, plot_power_balance
 import click
 import os
 
@@ -63,7 +65,7 @@ def analysis(directory,filenames,freqs,limits,trunc):
                 temp_dict = loadshot('Psi-Tet',directory, \
                     int(f_1),True,False,is_HITSI3,limits)
             else:
-                temp_dict = loadshot(filename,directory, \
+                temp_dict = loadshot(filename+str(int(f_1))+'.mat',directory, \
                     np.atleast_1d(int(f_1)),False,False, \
                     is_HITSI3,limits)
             temp_dict['use_IMP'] = False
@@ -73,13 +75,17 @@ def analysis(directory,filenames,freqs,limits,trunc):
 
     total = np.asarray(total).flatten()
     color_ind = 0
-    for i in range(len(freqs)):
-        if i % 4 == 0 and i != 0:
+    for i in range(len(freqs)*len(filenames)):
+        if i % len(freqs) == 0 and i != 0:
             color_ind = color_ind + 1
         color = colors2T[color_ind]
         SVD(total[i])
-        plot_itor(total[i],(i%4)+1,color)
-        plot_chronos(total[i],(i%4)+1,color)
-
+        plot_itor(total[i],(i%len(freqs))+1,color,filenames[color_ind])
+        #plot_chronos(total[i],(i%len(freqs))+1,color,filenames[color_ind])
+        plot_temperatures(total[i],(i%len(freqs))+1,color,filenames[color_ind])
+        plot_nFIR(total[i],(i%len(freqs))+1,color,filenames[color_ind])
+        plot_centroid(total[i],(i%len(freqs))+1,color,filenames[color_ind])
+        if filenames[color_ind] == 'Psi-Tet-2T':
+            plot_power_balance(total[i],(i%len(freqs))+1,filenames[color_ind])
 if __name__ == '__main__':
     analysis()
