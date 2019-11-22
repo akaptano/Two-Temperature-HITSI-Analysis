@@ -891,3 +891,21 @@ def IDS(psi_dict):
             if denom != 0:
                 VAvgPerChord[i,j] = numV/denom
                 TAvgPerChord[i,j] = numT/denom
+
+## Calculates the impact parameters of IDS_Coords
+# @param IDS_Coords
+def IDS_impacts(IDS_Coords):
+    s = np.shape(IDS_Coord)[2]
+    for i in range(s):
+        x = IDS_Coord[1,:,i]
+        y = IDS_Coord[2,:,i]
+        m[i] = ( y[1] - y[0] ) / ( x[1] - x[0] )
+        b[i] = y[1] - m[i]*x[1]
+        x0[i] = -m[i]*b[i] / (1+m[i]^2)
+        # y0[i] = m[i]*x0[i] + b[i]
+        y0[i] = b[i] / (m[i]^2 + 1)
+        z = x0[i] + np.sqrt(-1)*y0[i]
+        thet[i] = np.angle(z)
+        # numpy sign and matlab sign may be different!
+        impact[i] = np.sqrt(x0[i]**2 + y0[i]**2) * np.sign(thet[i])
+        impact[i] = np.sqrt(x0[i]**2 + y0[i]**2)
