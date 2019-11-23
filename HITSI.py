@@ -76,16 +76,39 @@ def analysis(directory,filenames,freqs,limits,trunc):
     total = np.asarray(total).flatten()
     color_ind = 0
     for i in range(len(freqs)*len(filenames)):
-        if i % len(freqs) == 0 and i != 0:
+        SVD(total[i])
+        if len(freqs) == 4:
+            subpl1 = 2
+            subpl2 = 2
+        else:
+            subpl1 = 1
+            subpl2 = len(freqs)
+        subpl3 = (i%(len(freqs)))+1
+        if subpl3-1 == 0 and i != 0:
             color_ind = color_ind + 1
         color = colors2T[color_ind]
-        SVD(total[i])
-        plot_itor(total[i],(i%len(freqs))+1,color,filenames[color_ind])
+        plt.figure(75000,figsize=(figx, figy))
+        plt.subplot(subpl1,subpl2,subpl3)
+        plt.figure(85000,figsize=(figx, figy))
+        plt.subplot(subpl1,subpl2,subpl3)
+        plt.figure(95000,figsize=(figx, figy))
+        plt.subplot(subpl1,subpl2,subpl3)
+        plt.figure(105000,figsize=(figx, figy))
+        plt.subplot(subpl1,subpl2,subpl3)
+        plt.figure(115000,figsize=(figx, figy))
+        plt.subplot(subpl1,subpl2,subpl3)
+        plt.figure(125000,figsize=(figx, figy))
+        plt.subplot(subpl1,subpl2,subpl3)
+        plt.figure(135000,figsize=(figx, figy))
+        plt.subplot(subpl1,subpl2,subpl3)
+        print(i,np.shape(total),color,len(filenames),color_ind)
+        plot_itor(total[i],subpl3,color,filenames[color_ind])
         #plot_chronos(total[i],(i%len(freqs))+1,color,filenames[color_ind])
-        plot_temperatures(total[i],(i%len(freqs))+1,color,filenames[color_ind])
-        plot_nFIR(total[i],(i%len(freqs))+1,color,filenames[color_ind])
-        plot_centroid(total[i],(i%len(freqs))+1,color,filenames[color_ind])
+        plot_temperatures(total[i],subpl3,color,filenames[color_ind])
+        plot_nFIR(total[i],subpl3,color,filenames[color_ind])
+        plot_centroid(total[i],subpl3,color,filenames[color_ind])
         if filenames[color_ind] == 'Psi-Tet-2T':
-            plot_power_balance(total[i],(i%len(freqs))+1,filenames[color_ind])
+            plot_power_balance(total[i],subpl3,filenames[color_ind])
+
 if __name__ == '__main__':
     analysis()

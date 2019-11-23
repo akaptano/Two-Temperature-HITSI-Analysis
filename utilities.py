@@ -477,7 +477,6 @@ def plot_itor(psi_dict,j,color,filename):
     tf = psi_dict['tf']
     time = psi_dict['time']*1000.0
     plt.figure(75000,figsize=(figx, figy))
-    plt.subplot(2,2,j)
     plt.plot(time,abs(itor),color=color,linewidth=lw,label=filename+r' $I_{tor}$', \
         path_effects=[pe.Stroke(linewidth=lw+2,foreground='k'), \
         pe.Normal()])
@@ -518,7 +517,6 @@ def plot_chronos(psi_dict,j,color,filename):
     time = psi_dict['sp_time'][t0:tf]*1000.0
     alphas = np.flip(np.linspace(0.3,1.0,3))
     plt.figure(85000,figsize=(figx, figy))
-    plt.subplot(2,2,j)
     for i in range(3):
         plt.plot(time,S[i]*Vh[i,:]*1e4/S[0],color=color,linewidth=lw, alpha=alphas[i], \
             path_effects=[pe.Stroke(linewidth=lw+2,foreground='k'), \
@@ -547,7 +545,6 @@ def plot_chronos(psi_dict,j,color,filename):
     plt.savefig(out_dir+'BD_chronos.pdf')
     plt.savefig(out_dir+'BD_chronos.svg')
     plt.figure(95000,figsize=(figx, figy))
-    plt.subplot(2,2,j)
     plt.semilogy(range(1,len(S)+1),S/S[0],color=color,marker='o', \
         markersize=ms,markeredgecolor='k')
     plt.semilogy(range(1,len(S)+1),S/S[0],color=color)
@@ -582,7 +579,6 @@ def plot_temperatures(psi_dict,j,color,filename):
     time = psi_dict['sp_time'][t0:tf]*1000.0
     alphas = np.flip(np.linspace(0.3,1.0,3))
     plt.figure(105000,figsize=(figx, figy))
-    plt.subplot(2,2,j)
     if 'te' in psi_dict.keys() and psi_dict['te'][10] != psi_dict['ti'][10]:
         plt.plot(time,psi_dict['te'][t0:tf],color=color, \
             linewidth=lw, alpha=0.6, \
@@ -632,7 +628,6 @@ def plot_nFIR(psi_dict,j,color,filename):
     time = psi_dict['sp_time'][t0:tf]*1000.0
     alphas = np.flip(np.linspace(0.3,1.0,3))
     plt.figure(115000,figsize=(figx, figy))
-    plt.subplot(2,2,j)
     plt.plot(time,psi_dict['inter_n'][t0:tf],color=color, \
         linewidth=lw, alpha=1.0, \
         path_effects=[pe.Stroke(linewidth=lw+2,foreground='k'), \
@@ -678,7 +673,6 @@ def plot_centroid(psi_dict,j,color,filename):
     sigr = sigr*100
     sigr = sihi_smooth(sigr,psi_dict['sp_time'],psi_dict['f_1'])
     plt.figure(125000,figsize=(figx, figy))
-    plt.subplot(2,2,j)
     plt.plot(time,r[t0:tf],color=color, \
         linewidth=lw, alpha=1.0, \
         path_effects=[pe.Stroke(linewidth=lw+2,foreground='k'), \
@@ -706,7 +700,6 @@ def plot_centroid(psi_dict,j,color,filename):
     plt.savefig(out_dir+'centroidavg.pdf')
     plt.savefig(out_dir+'centroidavg.svg')
     plt.figure(135000,figsize=(figx, figy))
-    plt.subplot(2,2,j)
     plt.plot(time,sigr[t0:tf],color=color, \
         linewidth=lw, alpha=1.0, \
         path_effects=[pe.Stroke(linewidth=lw+2,foreground='k'), \

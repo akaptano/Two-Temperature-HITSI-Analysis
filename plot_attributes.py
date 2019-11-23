@@ -41,7 +41,7 @@ transparency = 1.0
 ## Colors to distinguish between dictionaries
 Colors = np.random.rand(100,3)
 ## colors specifically for plotting two-temperature MHD results
-colors2T = ['r','b','g','m']
+colors2T = ['r','b','g','m','c']
 ## Styles to distinguish between discharges with different
 ## injector frequencies
 Styles = ['dashed','dotted','-.','solid',':']
