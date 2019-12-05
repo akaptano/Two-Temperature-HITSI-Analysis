@@ -159,9 +159,9 @@ def load_psitet_old(fname, runfolder, f_1, is_HITSI3, limits):
     if is_HITSI3:
         p['curr03'] = p['curr03'] / mu0
         p['is_HITSI3'] = True
-    p['filename'] = 'Psi-Tet' + str(f_1)
+    p['filename'] = 'PSI-Tet' + str(f_1)
     p['dt'] = p['sp_time'][0,1]-p['sp_time'][0,0]
-    if path.exists(runfolder + 'Psi-Tet' + str(f_1) + '_xmhd.mat'):
+    if path.exists(runfolder + 'PSI-Tet' + str(f_1) + '_xmhd.mat'):
         flatten_object(p)
         interpolate_all(p)
         get_time_limits(p,limits)
@@ -297,9 +297,9 @@ def load_psitet_new(fname, runfolder, f_1, is_HITSI3, limits):
     if is_HITSI3:
         p['curr03'] = p['curr03'] / mu0
         p['is_HITSI3'] = True
-    p['filename'] = 'Psi-Tet-2T' + str(f_1)
+    p['filename'] = 'PSI-Tet-2T' + str(f_1)
     p['dt'] = p['sp_time'][0,1]-p['sp_time'][0,0]
-    if path.exists(runfolder + 'Psi-Tet-2T' + str(f_1) + '_xmhd.mat'):
+    if path.exists(runfolder + 'PSI-Tet-2T' + str(f_1) + '_xmhd.mat'):
         flatten_object(p)
         interpolate_all(p)
         get_time_limits(p,limits)

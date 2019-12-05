@@ -29,7 +29,7 @@ ls = 24
 ## Markersize for scatter plots
 ms = 18
 ## Linewidth for line plots
-lw = 1
+lw = 3
 ## Figure size in horizontal dir
 figx = 14
 ## Figure size in vertical dir

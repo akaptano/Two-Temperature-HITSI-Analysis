@@ -8,7 +8,8 @@ from psitet_load import loadshot
 from utilities import SVD, \
      plot_chronos, plot_itor, \
      plot_temperatures, plot_nFIR, \
-     plot_centroid, plot_power_balance
+     plot_centroid, plot_power_balance, \
+     plot_individual_heat_flows
 import click
 import os
 
@@ -17,7 +18,7 @@ import os
     default='/media/removable/SD Card/Two-Temperature-Post-Processing/', \
     help='Directory containing the .mat files')
 @click.option('--filenames', \
-    default=['exppsi_129499.mat'],multiple=True, \
+    default=['expPSI_129499.mat'],multiple=True, \
     help='A list of all the filenames, which '+ \
         'allows a large number of shots to be '+ \
         'compared')
@@ -58,11 +59,11 @@ def analysis(directory,filenames,freqs,limits,trunc):
         for i in range(len(freqs)):
             f_1 = np.atleast_1d(freqs[i])
             print(i,j,filename,f_1,is_HITSI3)
-            if filename[0:10]=='Psi-Tet-2T':
-                temp_dict = loadshot('Psi-Tet-2T',directory, \
+            if '2T' in filename:
+                temp_dict = loadshot(filename.rsplit('2T', 1)[0]+'2T',directory, \
                     int(f_1),True,True,is_HITSI3,limits)
-            elif filename[0:3]=='Psi':
-                temp_dict = loadshot('Psi-Tet',directory, \
+            elif filename[0:3]=='PSI':
+                temp_dict = loadshot('PSI-Tet',directory, \
                     int(f_1),True,False,is_HITSI3,limits)
             else:
                 temp_dict = loadshot(filename+str(int(f_1))+'.mat',directory, \
@@ -75,6 +76,7 @@ def analysis(directory,filenames,freqs,limits,trunc):
 
     total = np.asarray(total).flatten()
     color_ind = 0
+    T2_ind = 0
     for i in range(len(freqs)*len(filenames)):
         SVD(total[i])
         if len(freqs) == 4:
@@ -107,8 +109,10 @@ def analysis(directory,filenames,freqs,limits,trunc):
         plot_temperatures(total[i],subpl3,color,filenames[color_ind])
         plot_nFIR(total[i],subpl3,color,filenames[color_ind])
         plot_centroid(total[i],subpl3,color,filenames[color_ind])
-        if filenames[color_ind] == 'Psi-Tet-2T':
+        if '2T' in filenames[color_ind]:
             plot_power_balance(total[i],subpl3,filenames[color_ind])
+            plot_individual_heat_flows(total[i],colors2T[T2_ind])
+            T2_ind = T2_ind + 1
 
 if __name__ == '__main__':
     analysis()

@@ -485,17 +485,19 @@ def plot_itor(psi_dict,j,color,filename):
     #    path_effects=[pe.Stroke(linewidth=lw+2,foreground='k'),pe.Normal()])
 
     #plt.plot(time,dict['curr02']/1000.0,'k',alpha=0.5,linewidth=lw,label=r'$I_y$')
-    if j == 1:
-        plt.legend(edgecolor='k',facecolor='white',fontsize=ls,loc='upper left')
+    #if j == 1:
+    #    plt.legend(edgecolor='k',facecolor='white',fontsize=ls,loc='upper left')
     #plt.axvline(x=time[t0],color='k')
     #plt.axvline(x=time[tf],color='k')
     #plt.xlabel('Time (ms)', fontsize=fs)
     #plt.ylabel(r'$I_{tor}$ (kA)', fontsize=fs)
     plt.grid(True)
+    plt.xlim(0,0.6)
     ax = plt.gca()
-    ax.set_yticks([0,20,40])
+    ax.set_yticks([0,10,20,30])
+    ax.set_xticks([0,0.3,0.6])
     if j == 1 or j == 3:
-        ax.set_yticklabels(['0','20','40'])
+        ax.set_yticklabels(['0','10','20','30'])
     else:
         ax.set_yticklabels([])
     if j == 1 or j == 2:
@@ -581,7 +583,7 @@ def plot_temperatures(psi_dict,j,color,filename):
     plt.figure(105000,figsize=(figx, figy))
     if 'te' in psi_dict.keys() and psi_dict['te'][10] != psi_dict['ti'][10]:
         plt.plot(time,psi_dict['te'][t0:tf],color=color, \
-            linewidth=lw, alpha=0.6, \
+            linewidth=lw, alpha=1.0,linestyle='--', \
             path_effects=[pe.Stroke(linewidth=lw+2,foreground='k'), \
             pe.Normal()],label=filename+r' $T_e$')
         plt.plot(time,psi_dict['ti'][t0:tf],color=color, \
@@ -593,8 +595,9 @@ def plot_temperatures(psi_dict,j,color,filename):
             linewidth=lw, alpha=1.0, \
             path_effects=[pe.Stroke(linewidth=lw+2,foreground='k'), \
             pe.Normal()],label=filename+r' $T$')
-    if j == 1:
-        plt.legend(edgecolor='k',facecolor='white',fontsize=ls,loc='upper left')
+    #if j == 1:
+    #    plt.legend(edgecolor='k',facecolor='white', \
+    #        framealpha=1.0,fontsize=ls,loc='upper left')
     #plt.axvline(x=time[t0],color='k')
     #plt.axvline(x=time[tf],color='k')
     #plt.xlabel('Time (ms)', fontsize=fs)
@@ -603,16 +606,17 @@ def plot_temperatures(psi_dict,j,color,filename):
     plt.grid(True)
     #plt.ylim(-1500,1500)
     ax = plt.gca()
-    ax.set_yticks([0,10,20,30,40])
+    ax.set_yticks([0,10,20,30])
     if j == 1 or j == 3:
-        ax.set_yticklabels(['0','10','20','30','40'])
+        ax.set_yticklabels(['0','10','20','30'])
     else:
         ax.set_yticklabels([])
-    ax.set_xticks([0,0.5,1.0])
+    ax.set_xticks([0,0.3,0.6])
+    plt.xlim(0,0.6)
     if j == 1 or j == 2:
         ax.set_xticklabels([])
     else:
-        ax.set_xticklabels(['0','0.5','1'])
+        ax.set_xticklabels(['0','0.3','0.6'])
     ax.tick_params(axis='both', which='major', labelsize=ts)
     ax.tick_params(axis='both', which='minor', labelsize=ts)
     plt.savefig(out_dir+'temperatures.png')
@@ -628,31 +632,33 @@ def plot_nFIR(psi_dict,j,color,filename):
     time = psi_dict['sp_time'][t0:tf]*1000.0
     alphas = np.flip(np.linspace(0.3,1.0,3))
     plt.figure(115000,figsize=(figx, figy))
-    plt.plot(time,psi_dict['inter_n'][t0:tf],color=color, \
+    plt.plot(time,sihi_smooth(psi_dict['inter_n'][t0:tf], \
+        psi_dict['sp_time'][t0:tf],psi_dict['f_1']),color=color, \
         linewidth=lw, alpha=1.0, \
         path_effects=[pe.Stroke(linewidth=lw+2,foreground='k'), \
         pe.Normal()],label=filename)
-    if j == 1:
-        plt.legend(edgecolor='k',facecolor='white',fontsize=ls,loc='upper right')
+    #if j == 1:
+    #    plt.legend(edgecolor='k',facecolor='white',fontsize=ls,loc='upper right')
     #plt.axvline(x=time[t0],color='k')
     #plt.axvline(x=time[tf],color='k')
     #plt.xlabel('Time (ms)', fontsize=fs)
     #h = plt.ylabel(r'$\frac{\Sigma_{kk}}{\Sigma_{00}}V_{ki}^*$', fontsize=fs)
     #h.set_rotation(0)
     plt.grid(True)
-    #plt.ylim(-1500,1500)
+    plt.ylim(4e18,1.3e19)
     #plt.yscale('log')
     ax = plt.gca()
-    ax.set_yticks([2e18,5e18,1e19,1.5e19])
+    ax.set_yticks([0.4e19,0.8e19,1.2e19])
+    plt.xlim(0,0.6)
     if j == 1 or j == 3:
-        ax.set_yticklabels(['2e18','5e18','1e19','1.5e19'])
+        ax.set_yticklabels(['0.4','0.8','1.2'])
     else:
         ax.set_yticklabels([])
-    ax.set_xticks([0,0.5,1.0])
+    ax.set_xticks([0,0.3,0.6])
     if j == 1 or j == 2:
         ax.set_xticklabels([])
     else:
-        ax.set_xticklabels(['0','0.5','1'])
+        ax.set_xticklabels(['0','0.3','0.6'])
     ax.tick_params(axis='both', which='major', labelsize=ts)
     ax.tick_params(axis='both', which='minor', labelsize=ts)
     plt.savefig(out_dir+'nFIR.png')
@@ -677,22 +683,23 @@ def plot_centroid(psi_dict,j,color,filename):
         linewidth=lw, alpha=1.0, \
         path_effects=[pe.Stroke(linewidth=lw+2,foreground='k'), \
         pe.Normal()],label=filename)
-    if j == 1:
-        plt.legend(edgecolor='k',facecolor='white',fontsize=ls,loc='upper right')
+    #if j == 1:
+    #    plt.legend(edgecolor='k',facecolor='white',
+    #        framealpha=1.0,fontsize=ls,loc='upper right')
     plt.grid(True)
     ax = plt.gca()
-    ax.set_yticks([24,30])
+    ax.set_yticks([25,30])
     if j == 1 or j == 3:
-        ax.set_yticklabels(['24','30'])
+        ax.set_yticklabels(['25','30'])
     else:
         ax.set_yticklabels([])
-    plt.xlim(0.3,1.0)
+    plt.xlim(0.3,0.6)
     plt.ylim(24,30)
-    ax.set_xticks([0.3,0.65,1.0])
+    ax.set_xticks([0.3,0.6])
     if j == 1 or j == 2:
         ax.set_xticklabels([])
     else:
-        ax.set_xticklabels(['0.3','0.65','1'])
+        ax.set_xticklabels(['0.3','0.6'])
     ax.tick_params(axis='both', which='major', labelsize=ts)
     ax.tick_params(axis='both', which='minor', labelsize=ts)
     plt.savefig(out_dir+'centroidavg.png')
@@ -704,8 +711,8 @@ def plot_centroid(psi_dict,j,color,filename):
         linewidth=lw, alpha=1.0, \
         path_effects=[pe.Stroke(linewidth=lw+2,foreground='k'), \
         pe.Normal()],label=filename)
-    if j == 1:
-        plt.legend(edgecolor='k',facecolor='white',fontsize=ls,loc='upper right')
+    #if j == 1:
+    #    plt.legend(edgecolor='k',facecolor='white',fontsize=ls,loc='upper right')
     plt.grid(True)
     ax = plt.gca()
     plt.ylim(0,10)
@@ -714,12 +721,12 @@ def plot_centroid(psi_dict,j,color,filename):
         ax.set_yticklabels(['0','5','10'])
     else:
         ax.set_yticklabels([])
-    plt.xlim(0.3,1.0)
-    ax.set_xticks([0.3,0.65,1.0])
+    plt.xlim(0.3,0.6)
+    ax.set_xticks([0.3,0.6])
     if j == 1 or j == 2:
         ax.set_xticklabels([])
     else:
-        ax.set_xticklabels(['0.3','0.65','1'])
+        ax.set_xticklabels(['0.3','0.6'])
     ax.tick_params(axis='both', which='major', labelsize=ts)
     ax.tick_params(axis='both', which='minor', labelsize=ts)
     plt.savefig(out_dir+'centroidstd.png')
@@ -763,7 +770,7 @@ def plot_power_balance(psi_dict,j,filename):
         pe.Normal()],label='field power')
     plt.plot(time,sihi_smooth(abs(psi_dict['therm'][t0:tf])/1e6, \
         psi_dict['sp_time'][t0:tf],psi_dict['f_1']),color='m', \
-        linewidth=lw, alpha=0.75, \
+        linewidth=lw, alpha=0.65, \
         path_effects=[pe.Stroke(linewidth=lw+2,foreground='k'), \
         pe.Normal()],label='thermal power')
     plt.plot(time,sihi_smooth(abs(psi_dict['ppow'][t0:tf])/1e6, \
@@ -833,14 +840,45 @@ def plot_power_balance(psi_dict,j,filename):
     ax.set_yticks([-1,-1e-1,-1e-2,-1e-3,0,1e-3,1e-2,1e-1,1])
     ax.set_yticklabels([r'$-10^{0}$','',r'$-10^{-2}$','','0', \
         '',r'$10^{-2}$','',r'$10^{0}$'])
-    ax.set_xticks([0.0,0.35,0.7])
-    ax.set_xticklabels(['0','0.35','0.7'])
+    plt.xlim(0,0.6)
+    ax.set_xticks([0.0,0.3,0.6])
+    ax.set_xticklabels(['0','0.3','0.6'])
     ax.tick_params(axis='both', which='major', labelsize=ts)
     ax.tick_params(axis='both', which='minor', labelsize=ts)
     plt.savefig(out_dir+'power_balance'+str(int(psi_dict['f_1']))+'.png')
     plt.savefig(out_dir+'power_balance'+str(int(psi_dict['f_1']))+'.eps')
     plt.savefig(out_dir+'power_balance'+str(int(psi_dict['f_1']))+'.pdf')
     plt.savefig(out_dir+'power_balance'+str(int(psi_dict['f_1']))+'.svg')
+
+def plot_individual_heat_flows(psi_dict,color):
+    power_dir = 'power_plots/'
+    t0 = psi_dict['t0']
+    tf = psi_dict['tf']
+    time = psi_dict['sp_time'][t0:tf]*1000.0
+    q = 0
+    for i in ['visc','ohmic','fpow','ppow','econd','icond', \
+        'e_adv','i_adv','ewall','iwall','equil','inj_power','therm']:
+        plt.figure(145000+q,figsize=(figx, figy))
+        plt.plot(time,
+            sihi_smooth(abs(psi_dict[i][t0:tf]/1e6), \
+            psi_dict['sp_time'][t0:tf],psi_dict['f_1']), \
+            color=color, linewidth=lw+2, alpha=1.0, \
+            path_effects=[pe.Stroke(linewidth=lw+4,foreground='k'), \
+            pe.Normal()],label=str(psi_dict['f_1'][0]))
+        #plt.legend(edgecolor='k',facecolor='white', \
+        #    framealpha=1.0,fontsize=ls)
+        plt.grid(True)
+        ax = plt.gca()
+        plt.xlim(0,0.6)
+        ax.set_xticks([0.0,0.3,0.6])
+        ax.set_xticklabels(['0','0.3','0.6'])
+        ax.tick_params(axis='both', which='major', labelsize=ts+6)
+        ax.tick_params(axis='both', which='minor', labelsize=ts+6)
+        plt.savefig(out_dir+power_dir+i+'.png')
+        plt.savefig(out_dir+power_dir+i+'.eps')
+        plt.savefig(out_dir+power_dir+i+'.pdf')
+        plt.savefig(out_dir+power_dir+i+'.svg')
+        q = q+1
 
 ## This function is not yet functional. This will at some point
 # compute the IDS chord-averaging and analysis
