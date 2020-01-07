@@ -1069,18 +1069,26 @@ def plot_all_heat_flows(psi_dict,color,filename,directory):
     'vxb']
     for i in range(1,29):
         plt.figure(145000+q,figsize=(figx, figy))
-        plt.plot(time, sihi_smooth(power[time1:time2,i], \
-            time*1e-3,psi_dict['f_1']), \
-            color=color, linewidth=lw+2, alpha=1.0, \
-            path_effects=[pe.Stroke(linewidth=lw+4,foreground='k'), \
-            pe.Normal()],label=str(psi_dict['f_1'][0]))
-        #plt.legend(edgecolor='k',facecolor='white', \
+       #plt.legend(edgecolor='k',facecolor='white', \
         #    framealpha=1.0,fontsize=ls)
         plt.grid(True)
         ax = plt.gca()
         plt.xlim(0,0.6)
-        plt.ylim(1.2*min(power[time1:time2,i]), \
-            1.2*max(power[time1:time2,i]))
+        if strlist[i-1] == 'beta':
+            plt.ylim(0, 50)
+            plt.plot(time, sihi_smooth(power[time1:time2,i]*100, \
+                time*1e-3,psi_dict['f_1']), \
+                color=color, linewidth=lw+2, alpha=1.0, \
+                path_effects=[pe.Stroke(linewidth=lw+4,foreground='k'), \
+                pe.Normal()],label=str(psi_dict['f_1'][0]))
+        else:
+            plt.plot(time, sihi_smooth(power[time1:time2,i], \
+                time*1e-3,psi_dict['f_1']), \
+                color=color, linewidth=lw+2, alpha=1.0, \
+                path_effects=[pe.Stroke(linewidth=lw+4,foreground='k'), \
+                pe.Normal()],label=str(psi_dict['f_1'][0]))
+            plt.ylim(1.2*min(power[time1:time2,i]), \
+                1.2*max(power[time1:time2,i]))
         ax.set_xticks([0.0,0.3,0.6])
         ax.set_xticklabels(['0','0.3','0.6'])
         ax.tick_params(axis='both', which='major', labelsize=ts+6)
@@ -1096,6 +1104,9 @@ def plot_all_heat_flows(psi_dict,color,filename,directory):
     ike = power[time1:time2,10]
     me = power[time1:time2,11]
     therm = power[time1:time2,12]
+    compress1 = power[time1:time2,20]
+    compress2 = power[time1:time2,21]
+    compress = compress1+compress2
     dsize = len(power[time1:time2,0])-2
     dTE = np.zeros(dsize)
     dKE = np.zeros(dsize)
@@ -1123,6 +1134,24 @@ def plot_all_heat_flows(psi_dict,color,filename,directory):
     plt.savefig(out_dir+power_dir+'inj.eps')
     plt.savefig(out_dir+power_dir+'inj.pdf')
     plt.savefig(out_dir+power_dir+'inj.svg')
+
+    plt.figure(2317424,figsize=(figx,figy))
+    plt.plot(time,sihi_smooth(compress, \
+        time*1e-3,psi_dict['f_1']),color=color,linewidth=lw,path_effects=[pe.Stroke(linewidth=lw+2,foreground='k'),pe.Normal()],label=r'$P_{inj}$ from power balance')
+    plt.grid(True)
+    ax = plt.gca()
+    plt.xlim(0,0.6)
+    #plt.ylim(1.2*min(power[time1:time2,i]), \
+    #    1.2*max(power[time1:time2,i]))
+    ax.set_xticks([0.0,0.3,0.6])
+    ax.set_xticklabels(['0','0.3','0.6'])
+    ax.tick_params(axis='both', which='major', labelsize=ts+6)
+    ax.tick_params(axis='both', which='minor', labelsize=ts+6)
+    plt.savefig(out_dir+power_dir+'compress.png')
+    plt.savefig(out_dir+power_dir+'compress.eps')
+    plt.savefig(out_dir+power_dir+'compress.pdf')
+    plt.savefig(out_dir+power_dir+'compress.svg')
+
 
 ## This function is not yet functional. This will at some point
 # compute the IDS chord-averaging and analysis
