@@ -1090,6 +1090,39 @@ def plot_all_heat_flows(psi_dict,color,filename,directory):
         plt.savefig(out_dir+power_dir+strlist[i-1]+'.pdf')
         plt.savefig(out_dir+power_dir+strlist[i-1]+'.svg')
         q = q+1
+    icond = power[time1:time2,3]
+    econd = power[time1:time2,4]
+    eke = power[time1:time2,9]
+    ike = power[time1:time2,10]
+    me = power[time1:time2,11]
+    therm = power[time1:time2,12]
+    dsize = len(power[time1:time2,0])-2
+    dTE = np.zeros(dsize)
+    dKE = np.zeros(dsize)
+    dME = np.zeros(dsize)
+    for i in range(1,dsize):
+      dKE[i] = ((eke[i]+ike[i])-(eke[i-1]+ike[i-1]))/(time[i]-time[i-1])*1e-3
+      dTE[i] = (therm[i]-therm[i-1])/(time[i]-time[i-1])*1e-3
+      dME[i] = (me[i]-me[i-1])/(time[i]-time[i-1])*1e-3
+    #dKE = dKE/1e6
+    #dTE = dTE/1e6
+    #dME = dME/1e6
+    plt.figure(2317423,figsize=(figx,figy))
+    plt.plot(time[1:dsize+1],abs(sihi_smooth(dKE+dTE+dME-icond[1:dsize+1]-econd[1:dsize+1], \
+        time[1:dsize+1]*1e-3,psi_dict['f_1'])),color=color,linewidth=lw,path_effects=[pe.Stroke(linewidth=lw+2,foreground='k'),pe.Normal()],label=r'$P_{inj}$ from power balance')
+    plt.grid(True)
+    ax = plt.gca()
+    plt.xlim(0,0.6)
+    #plt.ylim(1.2*min(power[time1:time2,i]), \
+    #    1.2*max(power[time1:time2,i]))
+    ax.set_xticks([0.0,0.3,0.6])
+    ax.set_xticklabels(['0','0.3','0.6'])
+    ax.tick_params(axis='both', which='major', labelsize=ts+6)
+    ax.tick_params(axis='both', which='minor', labelsize=ts+6)
+    plt.savefig(out_dir+power_dir+'inj.png')
+    plt.savefig(out_dir+power_dir+'inj.eps')
+    plt.savefig(out_dir+power_dir+'inj.pdf')
+    plt.savefig(out_dir+power_dir+'inj.svg')
 
 ## This function is not yet functional. This will at some point
 # compute the IDS chord-averaging and analysis
@@ -1207,7 +1240,7 @@ def plot_powers(psi_dict,filename,directory):
       dME[i] = (me[i]-me[i-1])/(time[i]-time[i-1])
       #dME[i] = (me[i+1]-me[i-1])/(time[i+1]-time[i-1])
     dKE = dKE/1e6
-    dTE = 3.0/2.0*dTE/1e6
+    dTE = dTE/1e6
     dME = dME/1e6
     time = time*1e3
     # plot the thermal flows
