@@ -8,6 +8,7 @@ from map_probes import \
 from scipy.stats import linregress
 from map_probes import \
     dead_probes
+from scipy import trapz
 
 ## Calculate the current centroid
 # @param dict A psi-tet dictionary
@@ -15,13 +16,13 @@ from map_probes import \
 # @returns rStd radial centroid standard dev.
 # @returns zAvg Average axial centroid position
 # @returns zStd axial centroid standard dev.
-def calcCentroid(dict):
-    time = dict['sp_time']
+def calcCentroid(psi_dict):
+    time = psi_dict['sp_time']
 
     tol = 1e-1
-    sp_names = dict['sp_names']
-    sp_Bpol = dict['sp_Bpol']
-    sp_Btor = dict['sp_Btor']
+    sp_names = psi_dict['sp_names']
+    sp_Bpol = psi_dict['sp_Bpol']
+    sp_Btor = psi_dict['sp_Btor']
 
     b_pol000 = []; rb_pol000 = []; zb_pol000 = [];
     b_pol045 = []; rb_pol045 = []; zb_pol045 = [];
@@ -103,70 +104,70 @@ def sihi_smooth(y, time, f_1):
 ## Performs a SVD of the data in a psi-tet dictionary.
 ## Has dmd_flags to control which data is put into the matrix
 ## for the SVD.
-# @param dict A psi-tet dictionary
-def SVD(dict):
-    t0 = dict['t0']
-    tf = dict['tf']
-    data = np.vstack((dict['curr01'],dict['curr02']))
-    if dict['is_HITSI3'] == True:
-        data = np.vstack((data,dict['curr03']))
-    #data = np.vstack((data,dict['flux01']))
-    #data = np.vstack((data,dict['flux02']))
-    data = np.vstack((data,dict['sp_Bpol']))
-    data = np.vstack((data,dict['sp_Btor']))
+# @param psi_dict A psi-tet dictionary
+def SVD(psi_dict):
+    t0 = psi_dict['t0']
+    tf = psi_dict['tf']
+    data = np.vstack((psi_dict['curr01'],psi_dict['curr02']))
+    if psi_dict['is_HITSI3'] == True:
+        data = np.vstack((data,psi_dict['curr03']))
+    #data = np.vstack((data,psi_dict['flux01']))
+    #data = np.vstack((data,psi_dict['flux02']))
+    data = np.vstack((data,psi_dict['sp_Bpol']))
+    data = np.vstack((data,psi_dict['sp_Btor']))
     getshape = np.shape(data)[0]
-    if dict['use_IMP']:
-        dict['imp_Bpol'] = np.nan_to_num(dict['imp_Bpol'])[::10,:]
-        dict['imp_Btor'] = np.nan_to_num(dict['imp_Btor'])[::10,:]
-        dict['imp_Brad'] = np.nan_to_num(dict['imp_Brad'])[::10,:]
-        dict['imp_Bpol'] = dict['imp_Bpol'][::1]
-        dict['imp_Btor'] = dict['imp_Btor'][::1]
-        dict['imp_Brad'] = dict['imp_Brad'][::1]
-        data = np.vstack((data,dict['imp_Bpol']))
-        shape1 = np.shape(dict['imp_Bpol'])[0]
-        shape2 = np.shape(dict['imp_Btor'])[0]
-        shape3 = np.shape(dict['imp_Brad'])[0]
+    if psi_dict['use_IMP']:
+        psi_dict['imp_Bpol'] = np.nan_to_num(psi_dict['imp_Bpol'])[::10,:]
+        psi_dict['imp_Btor'] = np.nan_to_num(psi_dict['imp_Btor'])[::10,:]
+        psi_dict['imp_Brad'] = np.nan_to_num(psi_dict['imp_Brad'])[::10,:]
+        psi_dict['imp_Bpol'] = psi_dict['imp_Bpol'][::1]
+        psi_dict['imp_Btor'] = psi_dict['imp_Btor'][::1]
+        psi_dict['imp_Brad'] = psi_dict['imp_Brad'][::1]
+        data = np.vstack((data,psi_dict['imp_Bpol']))
+        shape1 = np.shape(psi_dict['imp_Bpol'])[0]
+        shape2 = np.shape(psi_dict['imp_Btor'])[0]
+        shape3 = np.shape(psi_dict['imp_Brad'])[0]
         imp_pol_indices = np.linspace(0,shape1,shape1, \
             dtype = 'int')
-        data = np.vstack((data,dict['imp_Btor']))
+        data = np.vstack((data,psi_dict['imp_Btor']))
         imp_tor_indices = np.linspace(shape1,shape2+shape1,shape2, \
             dtype = 'int')
-        data = np.vstack((data,dict['imp_Brad']))
+        data = np.vstack((data,psi_dict['imp_Brad']))
         imp_rad_indices = np.linspace(shape1+shape2, \
             shape3+shape2+shape1,shape3, \
             dtype = 'int')
 
     # correct injector currents
-    if dict['is_HITSI3'] == True:
+    if psi_dict['is_HITSI3'] == True:
         data[0:3,:] = data[0:3,:]*mu0
     else:
         data[0:2,:] = data[0:2,:]*mu0
     data = data[:,t0:tf]
-    data_sub = data #subtract_linear_trend(dict,data)
+    data_sub = data #subtract_linear_trend(psi_dict,data)
     u,s,v = np.linalg.svd(data_sub)
     v = np.conj(np.transpose(v))
-    dict['SVD_data'] = data_sub
-    dict['SP_data'] = data
-    dict['U'] = u
-    dict['S'] = s
-    dict['V'] = v
+    psi_dict['SVD_data'] = data_sub
+    psi_dict['SP_data'] = data
+    psi_dict['U'] = u
+    psi_dict['S'] = s
+    psi_dict['V'] = v
 
 ## Identifies and subtracts a linear trend from each
 ## of the time signals contained in
-## the SVD data associated with the dictionary 'dict'. This is
+## the SVD data associated with the dictionary 'psi_dict'. This is
 ## to help DMD algorithms, since DMD does not deal well with
 ## non-exponential growth.
-# @param dict A dictionary with SVD data
+# @param psi_dict A dictionary with SVD data
 # @param data The SVD data matrix
 # @returns data_subtracted The SVD data matrix
 #  with the linear trend subtracted off
-def subtract_linear_trend(dict,data):
+def subtract_linear_trend(psi_dict,data):
     state_size = np.shape(data)[0]
     tsize = np.shape(data)[1]
-    t0 = dict['t0']
-    tf = dict['tf']
-    time = dict['sp_time'][t0:tf]
-    dt = dict['sp_time'][1] - dict['sp_time'][0]
+    t0 = psi_dict['t0']
+    tf = psi_dict['tf']
+    time = psi_dict['sp_time'][t0:tf]
+    dt = psi_dict['sp_time'][1] - psi_dict['sp_time'][0]
     data_subtracted = np.zeros((state_size,tsize))
     for i in range(state_size):
         slope, intercept, r_value, p_value, std_err = linregress(time,data[i,:])
@@ -181,48 +182,67 @@ def subtract_linear_trend(dict,data):
 
 ## Computes the toroidal mode spectrum using the
 ## surface midplane gap probes
-# @param dict A psi-tet dictionary
+# @param psi_dict A psi-tet dictionary
 # @param dmd_flag Flag to indicate which dmd method is used
-def toroidal_modes_sp(dict,dmd_flag):
-    f_1 = dict['f_1']
-    t0 = dict['t0']
-    tf = dict['tf']
-    t_vec = dict['sp_time'][t0:tf-1]
-    size_bpol = np.shape(dict['sp_Bpol'])[0]
-    size_btor = np.shape(dict['sp_Btor'])[0]
+def toroidal_modes_sp(psi_dict,dmd_flag):
+    f_1 = psi_dict['f_1']
+    t0 = psi_dict['t0']
+    tf = psi_dict['tf']
+    t_vec = psi_dict['sp_time'][t0:tf-1]
+    size_bpol = np.shape(psi_dict['sp_Bpol'])[0]
+    size_btor = np.shape(psi_dict['sp_Btor'])[0]
     offset = 2
-    if dict['is_HITSI3'] == True:
+    if psi_dict['is_HITSI3'] == True:
         offset = 3
     if dmd_flag == 2:
-        Bfield_anom = dict['sparse_Bfield_anom'] \
+        Bfield_anom = psi_dict['sparse_Bfield_anom'] \
             [offset+size_bpol-32: \
             offset+size_bpol:2,:]
     elif dmd_flag == 3:
-        Bfield_anom = dict['optimized_Bfield_anom'] \
-            [offset+size_bpol-32: \
-            offset+size_bpol:2,:]
-
+        print(np.shape(psi_dict['sp_Bz']))
+        Bfield_anom1 = psi_dict['sp_Bz'] \
+            [np.shape(psi_dict['sp_Bz'])[0]-32: \
+            np.shape(psi_dict['sp_Bz'])[0]:2,:]
+        Bfield_anom2 = psi_dict['SVD_data'] \
+            [offset+size_bpol+size_btor-32: \
+            offset+size_bpol+size_btor:2,:]
+        print(np.shape(psi_dict['SVD_data']))
     tsize = len(t_vec)
     phi = midphi
     nmax = 7
-    amps = fourier_calc(nmax,tsize,Bfield_anom,phi)
+    amps1 = fourier_calc(nmax,tsize,Bfield_anom1,phi)
+    amps2 = fourier_calc(nmax,tsize,Bfield_anom2,phi)
+    amps = (amps1+amps2)/2.0
     plt.figure(50000,figsize=(figx, figy))
     for m in range(nmax+1):
         plt.plot(t_vec*1000, \
-            amps[m,:],label='n = '+str(m), \
+            abs(sihi_smooth(amps1[m,:], \
+            psi_dict['sp_time'][t0:tf-1], \
+            psi_dict['f_1']))*1e4,label='n = '+str(m), \
             linewidth=lw)
             #plt.yscale('log')
-    plt.legend(fontsize=ls,loc='upper right',ncol=2)
-    plt.axvline(x=23.34,color='k')
-    plt.xlabel('Time (ms)', fontsize=fs)
-    plt.ylabel(r'$\delta B$', fontsize=fs)
-    plt.title('Surface Probes', fontsize=fs)
+    plt.legend(fontsize=ls,loc='upper left',framealpha=1,ncol=2)
     plt.grid(True)
     ax = plt.gca()
     ax.tick_params(axis='both', which='major', labelsize=ts)
     ax.tick_params(axis='both', which='minor', labelsize=ts)
     plt.savefig(out_dir+'toroidal_amps_sp.png')
-    dict['toroidal_amps'] = amps
+    plt.figure(51000,figsize=(figx, figy))
+    for m in range(nmax+1):
+        plt.plot(t_vec*1000, \
+            abs(sihi_smooth(amps2[m,:], \
+            psi_dict['sp_time'][t0:tf-1], \
+            psi_dict['f_1']))*1e4,label='n = '+str(m), \
+            linewidth=lw)
+            #plt.yscale('log')
+    plt.legend(fontsize=ls,loc='upper left',framealpha=1,ncol=2)
+    plt.grid(True)
+    ax = plt.gca()
+    ax.tick_params(axis='both', which='major', labelsize=ts)
+    ax.tick_params(axis='both', which='minor', labelsize=ts)
+    plt.savefig(out_dir+'toroidal_amps_sp1.png')
+
+    psi_dict['toroidal_amps'] = amps
     plt.figure(60000,figsize=(figx, figy))
     plt.title('Surface Probes', fontsize=fs)
     plt.bar(range(nmax+1),amps[:,0]*1e4,color='r',edgecolor='k')
@@ -236,33 +256,33 @@ def toroidal_modes_sp(dict,dmd_flag):
 
 ## Computes the toroidal mode spectrum using
 ## a set of 8 or 32 IMPs
-# @param dict A psi-tet dictionary
+# @param psi_dict A psi-tet dictionary
 # @param dmd_flag Flag to indicate which dmd method is used
-def toroidal_modes_imp(dict,dmd_flag):
-    f_1 = dict['f_1']
-    t0 = dict['t0']
-    tf = dict['tf']
-    t_vec = dict['sp_time'][t0:tf-1]
-    size_bpol = np.shape(dict['sp_Bpol'])[0]
-    size_btor = np.shape(dict['sp_Btor'])[0]
-    size_imp_bpol = np.shape(dict['imp_Bpol'])[0]
-    size_imp_btor = np.shape(dict['imp_Btor'])[0]
-    size_imp_brad = np.shape(dict['imp_Brad'])[0]
+def toroidal_modes_imp(psi_dict,dmd_flag):
+    f_1 = psi_dict['f_1']
+    t0 = psi_dict['t0']
+    tf = psi_dict['tf']
+    t_vec = psi_dict['sp_time'][t0:tf-1]
+    size_bpol = np.shape(psi_dict['sp_Bpol'])[0]
+    size_btor = np.shape(psi_dict['sp_Btor'])[0]
+    size_imp_bpol = np.shape(psi_dict['imp_Bpol'])[0]
+    size_imp_btor = np.shape(psi_dict['imp_Btor'])[0]
+    size_imp_brad = np.shape(psi_dict['imp_Brad'])[0]
     offset = 2
-    if dict['is_HITSI3'] == True:
+    if psi_dict['is_HITSI3'] == True:
         offset = 3
     if dmd_flag == 2:
-        Bfield_anom = dict['sparse_Bfield_anom'] \
+        Bfield_anom = psi_dict['sparse_Bfield_anom'] \
             [offset+size_bpol+size_btor: \
             offset+size_bpol+size_btor+size_imp_bpol,:]
     elif dmd_flag == 3:
-        Bfield_anom = dict['optimized_Bfield_anom'] \
+        Bfield_anom = psi_dict['optimized_Bfield_anom'] \
             [offset+size_bpol+size_btor: \
             offset+size_bpol+size_btor+size_imp_bpol,:]
 
     print('sihi smooth freq = ',f_1)
     tsize = len(t_vec)
-    num_IMPs = dict['num_IMPs']
+    num_IMPs = psi_dict['num_IMPs']
     phis = np.zeros(160*num_IMPs)
     if num_IMPs == 8:
         imp_phis = imp_phis8
@@ -307,7 +327,7 @@ def toroidal_modes_imp(dict,dmd_flag):
     ax.tick_params(axis='both', which='major', labelsize=ts)
     ax.tick_params(axis='both', which='minor', labelsize=ts)
     plt.savefig(out_dir+'toroidal_avgamps_imp.png')
-    dict['toroidal_amps'] = avg_amps
+    psi_dict['toroidal_amps'] = avg_amps
     plt.figure(180000,figsize=(figx, figy))
     plt.title('Average of IMP Probes', fontsize=fs)
     plt.bar(range(nmax+1),avg_amps[:,0]*1e4,color='r',edgecolor='k')
@@ -321,23 +341,23 @@ def toroidal_modes_imp(dict,dmd_flag):
 
 ## Computes the poloidal mode spectrum for each
 ## of the four poloidal slices of the surface probes
-# @param dict A psi-tet dictionary
+# @param psi_dict A psi-tet dictionary
 # @param dmd_flag Flag to indicate which dmd method is used
-def poloidal_modes(dict,dmd_flag):
-    f_1 = dict['f_1']
-    t0 = dict['t0']
-    tf = dict['tf']
-    t_vec = dict['sp_time'][t0:tf]
-    size_bpol = np.shape(dict['sp_Bpol'])[0]
-    size_btor = np.shape(dict['sp_Btor'])[0]
+def poloidal_modes(psi_dict,dmd_flag):
+    f_1 = psi_dict['f_1']
+    t0 = psi_dict['t0']
+    tf = psi_dict['tf']
+    t_vec = psi_dict['sp_time'][t0:tf]
+    size_bpol = np.shape(psi_dict['sp_Bpol'])[0]
+    size_btor = np.shape(psi_dict['sp_Btor'])[0]
     offset = 2
-    if dict['is_HITSI3'] == True:
+    if psi_dict['is_HITSI3'] == True:
         offset = 3
     if dmd_flag == 2:
-        Bfield_anom = dict['sparse_Bfield_anom'] \
+        Bfield_anom = psi_dict['sparse_Bfield_anom'] \
             [offset:offset+size_bpol,:]
     elif dmd_flag == 3:
-        Bfield_anom = dict['optimized_Bfield_anom'] \
+        Bfield_anom = psi_dict['optimized_Bfield_anom'] \
             [offset:offset+size_bpol,:]
     tsize = len(t_vec)
     # Find the poloidal gap probes
@@ -348,7 +368,7 @@ def poloidal_modes(dict,dmd_flag):
     theta = np.zeros(16)
     temp_B = np.zeros((64,tsize))
     temp_theta = np.zeros(16)
-    for key in sp_name_dict.keys():
+    for key in sp_name_psi_dict.keys():
         if key in dead_probes:
             if key[5] == 'P':
                 k2 = k2 + 1
@@ -358,7 +378,7 @@ def poloidal_modes(dict,dmd_flag):
             temp_B[k2, :] = Bfield_anom[j, :]
         if key[5:9] == 'P225' and \
             key[2:5] != 'L05' and key[2:5] != 'L06':
-            temp_theta[k1] = sp_name_dict[key][3]
+            temp_theta[k1] = sp_name_psi_dict[key][3]
             k1 = k1 + 1
         if key[5] == 'P':
             j = j + 1
@@ -394,7 +414,7 @@ def poloidal_modes(dict,dmd_flag):
         ax.tick_params(axis='both', which='major', labelsize=ts)
         ax.tick_params(axis='both', which='minor', labelsize=ts)
         plt.savefig(out_dir+'poloidal_amps.png')
-        dict['poloidal_amps'] = amps
+        psi_dict['poloidal_amps'] = amps
         plt.figure(70000,figsize=(figx, figy))
         plt.subplot(2,2,i+1)
         plt.title(r'$\phi$ = '+phi_str[i],fontsize=fs)
@@ -494,14 +514,16 @@ def plot_itor(psi_dict,j,color,filename):
     plt.grid(True)
     plt.xlim(0,0.6)
     ax = plt.gca()
-    ax.set_yticks([0,10,20,30])
-    ax.set_xticks([0,0.3,0.6])
+    ax.set_yticks([0,20,40])
+    #ax.set_yticks([0,20,40,60,80,100])
+    #ax.set_xticks([0,0.3,0.6])
     if j == 1 or j == 3:
-        ax.set_yticklabels(['0','10','20','30'])
+        ax.set_yticklabels(['0','20','40'])
+        #ax.set_yticklabels(['0','20','40','60','80','100'])
     else:
         ax.set_yticklabels([])
-    if j == 1 or j == 2:
-        ax.set_xticklabels([])
+    #if j == 1 or j == 2:
+    #    ax.set_xticklabels([])
     ax.tick_params(axis='both', which='major', labelsize=ts)
     ax.tick_params(axis='both', which='minor', labelsize=ts)
     plt.savefig(out_dir+'toroidal_current.png')
@@ -563,7 +585,7 @@ def plot_chronos(psi_dict,j,color,filename):
         ax.set_yticklabels([r'$10^{-2}$',r'$10^{-1}$',r'$10^{0}$'])
     else:
         ax.set_yticklabels([])
-    plt.xlim([0,20])
+    #plt.xlim([0,20])
     if j == 1 or j == 2:
         ax.set_xticklabels([])
     ax.tick_params(axis='both', which='major', labelsize=ts)
@@ -606,17 +628,17 @@ def plot_temperatures(psi_dict,j,color,filename):
     plt.grid(True)
     #plt.ylim(-1500,1500)
     ax = plt.gca()
-    ax.set_yticks([0,10,20,30])
+    ax.set_yticks([0,20,40,60])
     if j == 1 or j == 3:
-        ax.set_yticklabels(['0','10','20','30'])
+        ax.set_yticklabels(['0','20','40','60'])
     else:
         ax.set_yticklabels([])
     ax.set_xticks([0,0.3,0.6])
     plt.xlim(0,0.6)
-    if j == 1 or j == 2:
-        ax.set_xticklabels([])
-    else:
-        ax.set_xticklabels(['0','0.3','0.6'])
+    #if j == 1 or j == 2:
+    #    ax.set_xticklabels([])
+    #else:
+    ax.set_xticklabels(['0','0.3','0.6'])
     ax.tick_params(axis='both', which='major', labelsize=ts)
     ax.tick_params(axis='both', which='minor', labelsize=ts)
     plt.savefig(out_dir+'temperatures.png')
@@ -631,9 +653,12 @@ def plot_nFIR(psi_dict,j,color,filename):
     tf = psi_dict['tf']
     time = psi_dict['sp_time'][t0:tf]*1000.0
     alphas = np.flip(np.linspace(0.3,1.0,3))
+    #sihi_smooth(psi_dict['inter_n'][t0:tf], \
+    #    psi_dict['sp_time'][t0:tf],psi_dict['f_1']),
     plt.figure(115000,figsize=(figx, figy))
-    plt.plot(time,sihi_smooth(psi_dict['inter_n'][t0:tf], \
-        psi_dict['sp_time'][t0:tf],psi_dict['f_1']),color=color, \
+    plt.plot(time,
+        psi_dict['inter_n'][t0:tf], \
+        color=color, \
         linewidth=lw, alpha=1.0, \
         path_effects=[pe.Stroke(linewidth=lw+2,foreground='k'), \
         pe.Normal()],label=filename)
@@ -645,26 +670,129 @@ def plot_nFIR(psi_dict,j,color,filename):
     #h = plt.ylabel(r'$\frac{\Sigma_{kk}}{\Sigma_{00}}V_{ki}^*$', fontsize=fs)
     #h.set_rotation(0)
     plt.grid(True)
-    plt.ylim(4e18,1.3e19)
+    plt.ylim(1e18,1.6e19)
     #plt.yscale('log')
     ax = plt.gca()
-    ax.set_yticks([0.4e19,0.8e19,1.2e19])
+    ax.set_yticks([1e18,2e18,4e18,8e18,1.6e19])
+    #ax.set_yticks([0.4e19,0.6e19,1.2e19])
     plt.xlim(0,0.6)
     if j == 1 or j == 3:
-        ax.set_yticklabels(['0.4','0.8','1.2'])
+        ax.set_yticklabels(['0.4','0.6','1.2'])
     else:
         ax.set_yticklabels([])
+    ax.set_yticklabels(['0.1','0.2','0.4','0.8','1.6'])
+    #ax.set_yticklabels(['1.0','2.0','4.0'])
     ax.set_xticks([0,0.3,0.6])
-    if j == 1 or j == 2:
-        ax.set_xticklabels([])
-    else:
-        ax.set_xticklabels(['0','0.3','0.6'])
+    #if j == 1 or j == 2:
+    #    ax.set_xticklabels([])
+    #else:
+    ax.set_xticklabels(['0','0.3','0.6'])
     ax.tick_params(axis='both', which='major', labelsize=ts)
     ax.tick_params(axis='both', which='minor', labelsize=ts)
     plt.savefig(out_dir+'nFIR.png')
     plt.savefig(out_dir+'nFIR.eps')
     plt.savefig(out_dir+'nFIR.pdf')
     plt.savefig(out_dir+'nFIR.svg')
+
+## Plots the volume-averaged density
+# @param psi_dict A psi-tet dictionary
+def plot_navg(psi_dict,j,color,filename):
+    t0 = psi_dict['t0']
+    tf = psi_dict['tf']
+    time = psi_dict['sp_time'][t0:tf]*1000.0
+    alphas = np.flip(np.linspace(0.3,1.0,3))
+    #sihi_smooth(psi_dict['inter_n'][t0:tf], \
+    #    psi_dict['sp_time'][t0:tf],psi_dict['f_1']),
+    plt.figure(155000,figsize=(figx, figy))
+    plt.plot(time,
+        psi_dict['ne'][t0:tf], \
+        color=color, \
+        linewidth=lw, alpha=1.0, \
+        path_effects=[pe.Stroke(linewidth=lw+2,foreground='k'), \
+        pe.Normal()],label=filename)
+    #if j == 1:
+    #    plt.legend(edgecolor='k',facecolor='white',fontsize=ls,loc='upper right')
+    #plt.axvline(x=time[t0],color='k')
+    #plt.axvline(x=time[tf],color='k')
+    #plt.xlabel('Time (ms)', fontsize=fs)
+    #h = plt.ylabel(r'$\frac{\Sigma_{kk}}{\Sigma_{00}}V_{ki}^*$', fontsize=fs)
+    #h.set_rotation(0)
+    plt.grid(True)
+    plt.ylim(5e18,7e19)
+    #plt.yscale('log')
+    ax = plt.gca()
+    ax.set_yticks([1e19,2e19,3e19,4e19,5e19,7e19])
+    #ax.set_yticks([0.4e19,0.6e19,1.2e19])
+    plt.xlim(0,0.6)
+    if j == 1 or j == 3:
+        ax.set_yticklabels(['0.4','0.6','1.2'])
+    else:
+        ax.set_yticklabels([])
+    #ax.set_yticklabels(['0.1','0.2','0.4','0.8','1.6'])
+    ax.set_yticklabels(['1.0','2.0','3.0','4.0','5.0','6.0'])
+    ax.set_xticks([0,0.3,0.6])
+    #if j == 1 or j == 2:
+    #    ax.set_xticklabels([])
+    #else:
+    ax.set_xticklabels(['0','0.3','0.6'])
+    ax.tick_params(axis='both', which='major', labelsize=ts)
+    ax.tick_params(axis='both', which='minor', labelsize=ts)
+    plt.savefig(out_dir+'navg.png')
+    plt.savefig(out_dir+'navg.eps')
+    plt.savefig(out_dir+'navg.pdf')
+    plt.savefig(out_dir+'navg.svg')
+
+## Plots the volume-averaged pressure
+# @param psi_dict A psi-tet dictionary
+def plot_pressure(psi_dict,j,color,filename):
+    t0 = psi_dict['t0']
+    tf = psi_dict['tf']
+    time = psi_dict['sp_time'][t0:tf]*1000.0
+
+    alphas = np.flip(np.linspace(0.3,1.0,3))
+    plt.figure(165000,figsize=(figx, figy))
+    plt.plot(time,
+        psi_dict['ne'][t0:tf]*psi_dict['ti'][t0:tf]*k_boltz, \
+        color=color, \
+        linewidth=lw, alpha=1.0, \
+        path_effects=[pe.Stroke(linewidth=lw+2,foreground='k'), \
+        pe.Normal()],label=filename)
+    plt.plot(time,
+        psi_dict['ne'][t0:tf]*psi_dict['te'][t0:tf]*k_boltz, \
+        color=color,linestyle='--', \
+        linewidth=lw, alpha=1.0, \
+        path_effects=[pe.Stroke(linewidth=lw+2,foreground='k'), \
+        pe.Normal()],label=filename)
+    plt.plot(time,
+        psi_dict['ne'][t0:tf]*(psi_dict['ti'][t0:tf]+ \
+        psi_dict['te'][t0:tf])*k_boltz, \
+        color=color,marker='o', \
+        linewidth=lw, alpha=1.0, \
+        path_effects=[pe.Stroke(linewidth=lw+2,foreground='k'), \
+        pe.Normal()],label=filename)
+    plt.grid(True)
+    #plt.ylim(5e18,7e19)
+    ax = plt.gca()
+    #ax.set_yticks([1e19,2e19,3e19,4e19,5e19,7e19])
+    #ax.set_yticks([0.4e19,0.6e19,1.2e19])
+    plt.xlim(0,0.6)
+    #if j == 1 or j == 3:
+    #    ax.set_yticklabels(['0.4','0.6','1.2'])
+    #else:
+    #    ax.set_yticklabels([])
+    #ax.set_yticklabels(['0.1','0.2','0.4','0.8','1.6'])
+    #ax.set_yticklabels(['1.0','2.0','3.0','4.0','5.0','6.0'])
+    ax.set_xticks([0,0.3,0.6])
+    #if j == 1 or j == 2:
+    #    ax.set_xticklabels([])
+    #else:
+    ax.set_xticklabels(['0','0.3','0.6'])
+    ax.tick_params(axis='both', which='major', labelsize=ts)
+    ax.tick_params(axis='both', which='minor', labelsize=ts)
+    plt.savefig(out_dir+'pressure.png')
+    plt.savefig(out_dir+'pressure.eps')
+    plt.savefig(out_dir+'pressure.pdf')
+    plt.savefig(out_dir+'pressure.svg')
 
 ## Plots the centroid avg and std
 # @param psi_dict A psi-tet dictionary
@@ -696,10 +824,10 @@ def plot_centroid(psi_dict,j,color,filename):
     plt.xlim(0.3,0.6)
     plt.ylim(24,30)
     ax.set_xticks([0.3,0.6])
-    if j == 1 or j == 2:
-        ax.set_xticklabels([])
-    else:
-        ax.set_xticklabels(['0.3','0.6'])
+    #if j == 1 or j == 2:
+    #    ax.set_xticklabels([])
+    #else:
+    ax.set_xticklabels(['0.3','0.6'])
     ax.tick_params(axis='both', which='major', labelsize=ts)
     ax.tick_params(axis='both', which='minor', labelsize=ts)
     plt.savefig(out_dir+'centroidavg.png')
@@ -723,10 +851,10 @@ def plot_centroid(psi_dict,j,color,filename):
         ax.set_yticklabels([])
     plt.xlim(0.3,0.6)
     ax.set_xticks([0.3,0.6])
-    if j == 1 or j == 2:
-        ax.set_xticklabels([])
-    else:
-        ax.set_xticklabels(['0.3','0.6'])
+    #if j == 1 or j == 2:
+    #    ax.set_xticklabels([])
+    #else:
+    ax.set_xticklabels(['0.3','0.6'])
     ax.tick_params(axis='both', which='major', labelsize=ts)
     ax.tick_params(axis='both', which='minor', labelsize=ts)
     plt.savefig(out_dir+'centroidstd.png')
@@ -763,18 +891,24 @@ def plot_power_balance(psi_dict,j,filename):
     #ax.tick_params(axis='both', which='minor', labelsize=ts)
     #plt.grid(True)
     #plt.subplot(2,2,2)
-    plt.plot(time,sihi_smooth(abs(psi_dict['fpow'][t0:tf])/1e6, \
-        psi_dict['sp_time'][t0:tf],psi_dict['f_1']),color='m', \
+    #plt.plot(time,sihi_smooth(abs(psi_dict['fpow'][t0:tf])/1e6, \
+        #psi_dict['sp_time'][t0:tf],psi_dict['f_1']),color='m', \
+    plt.plot(time,psi_dict['fpow'][t0:tf]/1e6, \
+        color='m', \
         linewidth=lw, alpha=1.0, \
         path_effects=[pe.Stroke(linewidth=lw+2,foreground='k'), \
         pe.Normal()],label='field power')
-    plt.plot(time,sihi_smooth(abs(psi_dict['therm'][t0:tf])/1e6, \
-        psi_dict['sp_time'][t0:tf],psi_dict['f_1']),color='m', \
+    #plt.plot(time,sihi_smooth(abs(psi_dict['therm'][t0:tf])/1e6, \
+        #psi_dict['sp_time'][t0:tf],psi_dict['f_1']),color='m', \
+    plt.plot(time,psi_dict['therm'][t0:tf]/1e6, \
+        color='m', \
         linewidth=lw, alpha=0.65, \
         path_effects=[pe.Stroke(linewidth=lw+2,foreground='k'), \
         pe.Normal()],label='thermal power')
-    plt.plot(time,sihi_smooth(abs(psi_dict['ppow'][t0:tf])/1e6, \
-        psi_dict['sp_time'][t0:tf],psi_dict['f_1']),color='m', \
+    #plt.plot(time,sihi_smooth(abs(psi_dict['ppow'][t0:tf])/1e6, \
+    #    psi_dict['sp_time'][t0:tf],psi_dict['f_1']),color='m', \
+    plt.plot(time,psi_dict['ppow'][t0:tf]/1e6, \
+        color='m', \
         linewidth=lw, alpha=0.5, \
         path_effects=[pe.Stroke(linewidth=lw+2,foreground='k'), \
         pe.Normal()],label='kinetic power')
@@ -860,7 +994,7 @@ def plot_individual_heat_flows(psi_dict,color):
         'e_adv','i_adv','ewall','iwall','equil','inj_power','therm']:
         plt.figure(145000+q,figsize=(figx, figy))
         plt.plot(time,
-            sihi_smooth(abs(psi_dict[i][t0:tf]/1e6), \
+            sihi_smooth(psi_dict[i][t0:tf]/1e6, \
             psi_dict['sp_time'][t0:tf],psi_dict['f_1']), \
             color=color, linewidth=lw+2, alpha=1.0, \
             path_effects=[pe.Stroke(linewidth=lw+4,foreground='k'), \
@@ -870,6 +1004,13 @@ def plot_individual_heat_flows(psi_dict,color):
         plt.grid(True)
         ax = plt.gca()
         plt.xlim(0,0.6)
+        if i == 'equil':
+            plt.ylim(-0.01,0.04)
+        else:
+            plt.ylim(1.2*min(sihi_smooth(psi_dict[i][t0:tf]/1e6, \
+                psi_dict['sp_time'][t0:tf],psi_dict['f_1'])), \
+                1.2*max(sihi_smooth(psi_dict[i][t0:tf]/1e6, \
+                psi_dict['sp_time'][t0:tf],psi_dict['f_1'])))
         ax.set_xticks([0.0,0.3,0.6])
         ax.set_xticklabels(['0','0.3','0.6'])
         ax.tick_params(axis='both', which='major', labelsize=ts+6)
@@ -878,6 +1019,76 @@ def plot_individual_heat_flows(psi_dict,color):
         plt.savefig(out_dir+power_dir+i+'.eps')
         plt.savefig(out_dir+power_dir+i+'.pdf')
         plt.savefig(out_dir+power_dir+i+'.svg')
+        q = q+1
+
+def plot_all_heat_flows(psi_dict,color,filename,directory):
+    power_dir = 'power_plots/'
+    t0 = psi_dict['t0']
+    tf = psi_dict['tf']
+    time = psi_dict['sp_time'][t0:tf]*1000.0
+    q = 0
+    power = np.loadtxt(directory+filename+str(int(psi_dict['f_1']))+'_powers.hist')
+    time = power[:,0]
+    t0 = psi_dict['t0']
+    tf = psi_dict['tf']
+    time1 = (np.abs(time - psi_dict['sp_time'][t0])).argmin()
+    time2 = (np.abs(time - psi_dict['sp_time'][tf])).argmin()
+    print(time1,time2,time[time1],time[time2])
+    time = time[time1:time2]*1e3
+    power[:,1:10] = power[:,1:10]/1e6
+    power[:,16:18] = power[:,16:18]/1e6
+    power[:,19:22] = power[:,19:22]/1e6
+    strlist = [\
+    'ohmic', \
+    'visc', \
+    'icond', \
+    'econd', \
+    'iadv', \
+    'eadv1', \
+    'eadv2', \
+    'nadv', \
+    'eke', \
+    'ike', \
+    'me', \
+    'therm', \
+    'pe', \
+    'pi', \
+    'beta', \
+    'qdiff', \
+    'qdiffwall', \
+    'divv', \
+    'coll', \
+    'compress1', \
+    'compress2', \
+    'vi', \
+    've', \
+    'ch', \
+    'mach', \
+    'alfmach', \
+    'che', \
+    'vxb']
+    for i in range(1,29):
+        plt.figure(145000+q,figsize=(figx, figy))
+        plt.plot(time, sihi_smooth(power[time1:time2,i], \
+            time*1e-3,psi_dict['f_1']), \
+            color=color, linewidth=lw+2, alpha=1.0, \
+            path_effects=[pe.Stroke(linewidth=lw+4,foreground='k'), \
+            pe.Normal()],label=str(psi_dict['f_1'][0]))
+        #plt.legend(edgecolor='k',facecolor='white', \
+        #    framealpha=1.0,fontsize=ls)
+        plt.grid(True)
+        ax = plt.gca()
+        plt.xlim(0,0.6)
+        plt.ylim(1.2*min(power[time1:time2,i]), \
+            1.2*max(power[time1:time2,i]))
+        ax.set_xticks([0.0,0.3,0.6])
+        ax.set_xticklabels(['0','0.3','0.6'])
+        ax.tick_params(axis='both', which='major', labelsize=ts+6)
+        ax.tick_params(axis='both', which='minor', labelsize=ts+6)
+        plt.savefig(out_dir+power_dir+strlist[i-1]+'.png')
+        plt.savefig(out_dir+power_dir+strlist[i-1]+'.eps')
+        plt.savefig(out_dir+power_dir+strlist[i-1]+'.pdf')
+        plt.savefig(out_dir+power_dir+strlist[i-1]+'.svg')
         q = q+1
 
 ## This function is not yet functional. This will at some point
@@ -940,3 +1151,193 @@ def IDS_impacts(IDS_Coords):
         # numpy sign and matlab sign may be different!
         impact[i] = np.sqrt(x0[i]**2 + y0[i]**2) * np.sign(thet[i])
         impact[i] = np.sqrt(x0[i]**2 + y0[i]**2)
+
+def plot_powers(psi_dict,filename,directory):
+    inj_freq = psi_dict['f_1']
+    power = np.loadtxt(directory+filename+str(int(psi_dict['f_1']))+'_powers.hist')
+    time = power[:,0]
+    t0 = psi_dict['t0']
+    tf = psi_dict['tf']
+    time1 = (np.abs(time - psi_dict['sp_time'][t0])).argmin()
+    time2 = (np.abs(time - psi_dict['sp_time'][tf])).argmin()
+    print(time1,time2,time[time1],time[time2])
+    time = time[time1:time2]
+    power[:,1:10] = power[:,1:10]/1e6
+    power[:,16:18] = power[:,16:18]/1e6
+    power[:,19:22] = power[:,19:22]/1e6
+    ohmic = power[time1:time2,1]
+    visc  = power[time1:time2,2]
+    icond = power[time1:time2,3]
+    econd = power[time1:time2,4]
+    iadv  = power[time1:time2,5]
+    eadv1 = power[time1:time2,6]
+    eadv2 = power[time1:time2,7]
+    nadv  = power[time1:time2,8]
+    eke   = power[time1:time2,9]
+    ike   = power[time1:time2,10]
+    me    = power[time1:time2,11]
+    therm = power[time1:time2,12]
+    pelec    = power[time1:time2,13]
+    pion    = power[time1:time2,14]
+    beta  = power[time1:time2,15]
+    qdiff = power[time1:time2,16]
+    qdiffwall = power[time1:time2,17]
+    divv  = power[time1:time2,18]
+    coll  = power[time1:time2,19]
+    compress1 = power[time1:time2,20]
+    compress2 = power[time1:time2,21]
+    compress = compress1+compress2
+    vi = power[time1:time2,22]
+    ve = power[time1:time2,23]
+    ch = power[time1:time2,24]
+    mach = power[time1:time2,25]
+    alfmach = power[time1:time2,26]
+    che = power[time1:time2,27]
+    vxb = power[time1:time2,28]
+
+    dsize = len(power[time1:time2,0])-2
+    dTE = np.zeros(dsize)
+    dKE = np.zeros(dsize)
+    dME = np.zeros(dsize)
+    for i in range(1,dsize):
+      dKE[i] = ((eke[i]+ike[i])-(eke[i-1]+ike[i-1]))/(time[i]-time[i-1])
+      #dKE[i] = ((eke[i+1]+ike[i+1])-(eke[i-1]+ike[i-1]))/(time[i+1]-time[i-1])
+      dTE[i] = (therm[i]-therm[i-1])/(time[i]-time[i-1])
+      #dTE[i] = (therm[i+1]-therm[i-1])/(time[i+1]-time[i-1])
+      dME[i] = (me[i]-me[i-1])/(time[i]-time[i-1])
+      #dME[i] = (me[i+1]-me[i-1])/(time[i+1]-time[i-1])
+    dKE = dKE/1e6
+    dTE = 3.0/2.0*dTE/1e6
+    dME = dME/1e6
+    time = time*1e3
+    # plot the thermal flows
+    plt.figure(1,figsize=(figx,figy))
+    plt.plot(time,nadv,'b',linewidth=lw,path_effects=[pe.Stroke(linewidth=lw+2,foreground='k'),pe.Normal()],label=r'$|k_b(T_i+T_e)\vec{u}\cdot\nabla n|$')
+    plt.plot(time,iadv,'g',linewidth=lw,path_effects=[pe.Stroke(linewidth=lw+2,foreground='k'),pe.Normal()],label=r'$|n\vec{u}\cdot\nabla k_bT_i|$')
+    plt.plot(time,eadv1,'g',linewidth=lw,path_effects=[pe.Stroke(linewidth=lw+2,foreground='k'),pe.Normal()],label=r'$|n\vec{u}\cdot\nabla k_bT_e|$')
+    plt.plot(time,eadv2,'m',linewidth=lw,path_effects=[pe.Stroke(linewidth=lw+2,foreground='k'),pe.Normal()],label=r'$|\vec{J}\cdot\nabla k_bT_e|$')
+    plt.plot(time,ohmic,'r',linewidth=lw,path_effects=[pe.Stroke(linewidth=lw+2,foreground='k'),pe.Normal()],label=r'$|\eta J^2|$')
+    plt.plot(time,compress,'y',linewidth=lw,path_effects=[pe.Stroke(linewidth=lw+2,foreground='k'),pe.Normal()],label=r'$|\frac{\gamma nk_b}{\gamma-1}(T_i+T_e)\nabla\cdot \vec{u}|$')
+    plt.plot(time[1:dsize+1],dTE,'gray',linewidth=lw,path_effects=[pe.Stroke(linewidth=lw+2,foreground='k'),pe.Normal()],label=r'$|\frac{d}{dt}\frac{nk_b (T_i+T_e)}{\gamma-1} |$')
+    plt.plot(time,visc,'hotpink',linewidth=lw,path_effects=[pe.Stroke(linewidth=lw+2,foreground='k'),pe.Normal()],label=r'$|\nu (\nabla \vec{u})^T:\hat{W}|$')
+    plt.plot(time,qdiffwall,'c',linewidth=lw,path_effects=[pe.Stroke(linewidth=lw+2,foreground='k'),pe.Normal()],label=r'$|\frac{k_b}{\gamma-1}\int_V (T_i+T_e)D\nabla^2n|$')
+    #plt.plot(time,qdiff+qdiffwall,'c',linewidth=lw,path_effects=[pe.Stroke(linewidth=lw+2,foreground='k'),pe.Normal()],label='Total diffusive heat')
+    plt.plot(time,icond+econd,'orange',linewidth=lw,path_effects=[pe.Stroke(linewidth=lw+2,foreground='k'),pe.Normal()],label=r'$|\int_\Omega (\vec{q}_i+\vec{q}_e)\cdot \vec{d\Omega}|$')
+    #plt.plot(time[1:dsize+1],ohmic[1:dsize+1]+visc[1:dsize+1]+icond[1:dsize+1] \
+    #  +econd[1:dsize+1]+qdiffwall[1:dsize+1]+nadv[1:dsize+1] \
+    #  +iadv[1:dsize+1]+eadv1[1:dsize+1]-dTE \
+    #  +eadv2[1:dsize+1]+compress[1:dsize+1],'k',linewidth=lw,path_effects=[pe.Stroke(linewidth=lw+2,foreground='k'),pe.Normal()],label='Total balance')
+    plt.yscale('symlog',linthreshy=1e-2)
+    plt.legend(loc='upper right',framealpha=1.0,fontsize=ls,ncol=2)
+    plt.ylim(-10,10)
+    ax = plt.gca()
+    ax.tick_params(axis='both', which='major', labelsize=ts)
+    ax.tick_params(axis='both', which='minor', labelsize=ts)
+    # plot the thermal flows
+    plt.savefig(out_dir+filename+str(int(psi_dict['f_1']))+'heat_balance_symlog.svg')
+    plt.savefig(out_dir+filename+str(int(psi_dict['f_1']))+'heat_balance_symlog.pdf')
+    plt.savefig(out_dir+filename+str(int(psi_dict['f_1']))+'heat_balance_symlog.eps')
+    plt.figure(5,figsize=(figx,figy))
+    plt.plot(time,abs(nadv),'b',linewidth=lw,path_effects=[pe.Stroke(linewidth=lw+2,foreground='k'),pe.Normal()],label=r'$\frac{k_b}{\gamma-1}|\int_V(T_i+T_e)\vec{u}\cdot\nabla n dV|$')
+    plt.plot(time,abs(iadv),'g',linewidth=lw,path_effects=[pe.Stroke(linewidth=lw+2,foreground='k'),pe.Normal()],label=r'$\frac{k_b}{\gamma-1}|\int_V n\vec{u}\cdot\nabla T_i dV|$')
+    plt.plot(time,abs(eadv1),'burlywood',linewidth=lw,path_effects=[pe.Stroke(linewidth=lw+2,foreground='k'),pe.Normal()],label=r'$\frac{k_b}{\gamma-1}|\int_V n\vec{u}\cdot\nabla T_e dV|$')
+    plt.plot(time,abs(eadv2),'m',linewidth=lw,path_effects=[pe.Stroke(linewidth=lw+2,foreground='k'),pe.Normal()],label=r'$\frac{k_b}{\gamma-1}|\int_V \vec{J}\cdot\nabla T_e dV|$')
+    plt.plot(time,abs(ohmic),'r',linewidth=lw,path_effects=[pe.Stroke(linewidth=lw+2,foreground='k'),pe.Normal()],label=r'$|\int_V \eta J^2 dV|$')
+    plt.plot(time,abs(compress),'y',linewidth=lw,path_effects=[pe.Stroke(linewidth=lw+2,foreground='k'),pe.Normal()],label=r'$\frac{\gamma k_b}{\gamma-1}|\int_V n(T_i+T_e)\nabla\cdot \vec{u} dV|$')
+    plt.plot(time[1:dsize+1],abs(dTE),'gray',linewidth=lw,path_effects=[pe.Stroke(linewidth=lw+2,foreground='k'),pe.Normal()],label=r'$\frac{k_b}{\gamma-1}|\int_V \frac{d}{dt} n(T_e+T_i) dV|$')
+    plt.plot(time,abs(visc),'hotpink',linewidth=lw,path_effects=[pe.Stroke(linewidth=lw+2,foreground='k'),pe.Normal()],label=r'$|\int_V \nu (\nabla \vec{u})^T:\hat{W} dV|$')
+    plt.plot(time,abs(qdiff+qdiffwall),'c',linewidth=lw,path_effects=[pe.Stroke(linewidth=lw+2,foreground='k'),pe.Normal()],label=r'$\frac{k_b}{\gamma-1}|\int_V (T_i+T_e)D\nabla^2n dV|$')
+    #plt.plot(time,abs(coll),'darkcyan',linewidth=lw,path_effects=[pe.Stroke(linewidth=lw+2,foreground='k'),pe.Normal()],label='Collisional heat')
+    plt.plot(time,abs(icond+econd),'orange',linewidth=lw,path_effects=[pe.Stroke(linewidth=lw+2,foreground='k'),pe.Normal()],label=r'$|\int_\Omega (\vec{q}_i+\vec{q}_e)\cdot \vec{d\Omega}|$')
+    #plt.plot(time[1:dsize+1],abs(ohmic[1:dsize+1]+visc[1:dsize+1]+icond[1:dsize+1] \
+    #  +econd[1:dsize+1]+qdiffwall[1:dsize+1]+qdiff[1:dsize+1]-dTE+nadv[1:dsize+1] \
+    #  +iadv[1:dsize+1]+eadv1[1:dsize+1] \
+    #  +eadv2[1:dsize+1]+compress[1:dsize+1]),'k',linewidth=lw,path_effects=[pe.Stroke(linewidth=lw+2,foreground='k'),pe.Normal()],label='Total balance')
+    #plt.plot(time[1:dsize+1],abs(ohmic[1:dsize+1]+visc[1:dsize+1]+icond[1:dsize+1] \
+    #  +econd[1:dsize+1]+qdiffwall[1:dsize+1]+qdiff[1:dsize+1]-dTE+nadv[1:dsize+1] \
+    #  +iadv[1:dsize+1]+eadv1[1:dsize+1] \
+    #  +eadv2[1:dsize+1]+compress[1:dsize+1])/abs(ohmic[1:dsize+1]+visc[1:dsize+1]-icond[1:dsize+1] \
+    #  -econd[1:dsize+1]+qdiffwall[1:dsize+1]+qdiff[1:dsize+1]-dTE+nadv[1:dsize+1] \
+    #  +iadv[1:dsize+1]+eadv1[1:dsize+1] \
+    #  +eadv2[1:dsize+1]+compress[1:dsize+1]),'brown',linewidth=lw,path_effects=[pe.Stroke(linewidth=lw+2,foreground='k'),pe.Normal()],label='Error')
+    plt.yscale('log')
+    plt.legend(loc='lower right',framealpha=1.0,fontsize=ls,ncol=2)
+    plt.ylim(1e-8,1e0)
+    ax = plt.gca()
+    ax.tick_params(axis='both', which='major', labelsize=ts)
+    ax.tick_params(axis='both', which='minor', labelsize=ts)
+    plt.grid(True)
+    plt.savefig(out_dir+filename+str(int(psi_dict['f_1']))+'heat_balance.svg')
+    plt.savefig(out_dir+filename+str(int(psi_dict['f_1']))+'heat_balance.pdf')
+    plt.savefig(out_dir+filename+str(int(psi_dict['f_1']))+'heat_balance.eps')
+    # plot the power balance
+    plt.figure(2,figsize=(figx,figy))
+    plt.plot(time[1:dsize+1],abs(sihi_smooth(dKE,time[1:dsize+1],psi_dict['f_1'])),'r',linewidth=lw,path_effects=[pe.Stroke(linewidth=lw+2,foreground='k'),pe.Normal()],label=r'$\frac{d}{dt} KE$')
+    plt.plot(time[1:dsize+1],abs(sihi_smooth(dTE,time[1:dsize+1],psi_dict['f_1'])),'b',linewidth=lw,path_effects=[pe.Stroke(linewidth=lw+2,foreground='k'),pe.Normal()],label=r'$\frac{d}{dt} TE$')
+    plt.plot(time[1:dsize+1],abs(sihi_smooth(dME,time[1:dsize+1],psi_dict['f_1'])),'g',linewidth=lw,path_effects=[pe.Stroke(linewidth=lw+2,foreground='k'),pe.Normal()],label=r'$\frac{d}{dt} ME$')
+    plt.plot(time,abs(sihi_smooth(icond,time,psi_dict['f_1'])),'m',linewidth=lw,path_effects=[pe.Stroke(linewidth=lw+2,foreground='k'),pe.Normal()],label=r'$\int_\Omega \vec{q}_i\cdot \vec{d\Omega}$')
+    plt.plot(time,abs(sihi_smooth(econd,time,psi_dict['f_1'])),'orange',linewidth=lw,path_effects=[pe.Stroke(linewidth=lw+2,foreground='k'),pe.Normal()],label=r'$\int_\Omega \vec{q}_e\cdot \vec{d\Omega}$')
+    plt.plot(time[1:dsize+1],abs(dKE+dTE+dME-icond[1:dsize+1]-econd[1:dsize+1]),'c',linewidth=lw,path_effects=[pe.Stroke(linewidth=lw+2,foreground='k'),pe.Normal()],label=r'$P_{inj}$ from power balance')
+    plt.yscale('log')
+    plt.legend(loc='upper right',framealpha=1.0,fontsize=ls,ncol=2)
+    plt.ylim(1e-3,1e1)
+    ax = plt.gca()
+    ax.tick_params(axis='both', which='major', labelsize=ts)
+    ax.tick_params(axis='both', which='minor', labelsize=ts)
+    plt.grid(True)
+    plt.savefig(out_dir+filename+str(int(psi_dict['f_1']))+'power_balance.svg')
+    plt.savefig(out_dir+filename+str(int(psi_dict['f_1']))+'power_balance.pdf')
+    plt.savefig(out_dir+filename+str(int(psi_dict['f_1']))+'power_balance.eps')
+    # plot the total energy
+    plt.figure(6,figsize=(figx,figy))
+    plt.plot(time,ike+eke,'r',linewidth=lw,path_effects=[pe.Stroke(linewidth=lw+2,foreground='k'),pe.Normal()],label=r'Kinetic Energy')
+    plt.plot(time,therm,'b',linewidth=lw,path_effects=[pe.Stroke(linewidth=lw+2,foreground='k'),pe.Normal()],label=r'Thermal Energy')
+    plt.plot(time,me,'g',linewidth=lw,path_effects=[pe.Stroke(linewidth=lw+2,foreground='k'),pe.Normal()],label=r'Magnetic Energy')
+    plt.plot(time,ike+eke+me+therm,'c',linewidth=lw,path_effects=[pe.Stroke(linewidth=lw+2,foreground='k'),pe.Normal()],label=r'Total Energy')
+    plt.plot(time,-che,'k',linewidth=lw,path_effects=[pe.Stroke(linewidth=lw+2,foreground='k'),pe.Normal()],label=r'$H_C$')
+    plt.yscale('log')
+    plt.legend(loc='upper left',framealpha=1.0,fontsize=ls)
+    plt.ylim(1e-2,1e2)
+    ax = plt.gca()
+    ax.tick_params(axis='both', which='major', labelsize=ts)
+    ax.tick_params(axis='both', which='minor', labelsize=ts)
+    plt.grid(True)
+    plt.savefig(out_dir+filename+str(int(psi_dict['f_1']))+'energies.svg')
+    plt.savefig(out_dir+filename+str(int(psi_dict['f_1']))+'energies.pdf')
+    plt.savefig(out_dir+filename+str(int(psi_dict['f_1']))+'energies.eps')
+    # plot the pressures and beta
+    plt.figure(3,figsize=(figx,figy))
+    plt.plot(time,me,'r',linewidth=lw,path_effects=[pe.Stroke(linewidth=lw+2,foreground='k'),pe.Normal()],label=r'$B^2/2\mu_0$')
+    plt.plot(time,pion,'b',linewidth=lw,path_effects=[pe.Stroke(linewidth=lw+2,foreground='k'),pe.Normal()],label=r'$P_i$')
+    plt.plot(time,pelec,'g',linewidth=lw,path_effects=[pe.Stroke(linewidth=lw+2,foreground='k'),pe.Normal()],label=r'$P_e$')
+    plt.plot(time,pion+pelec,'m',linewidth=lw,path_effects=[pe.Stroke(linewidth=lw+2,foreground='k'),pe.Normal()],label=r'$P = P_i + P_e$')
+    plt.plot(time,beta*100,'orange',linewidth=lw,path_effects=[pe.Stroke(linewidth=lw+2,foreground='k'),pe.Normal()],label=r'$\beta$ (%)')
+    plt.yscale('log')
+    plt.legend(loc='upper right',framealpha=1.0,fontsize=ls)
+    plt.ylim(1e0,1e3)
+    ax = plt.gca()
+    ax.tick_params(axis='both', which='major', labelsize=ts)
+    ax.tick_params(axis='both', which='minor', labelsize=ts)
+    plt.grid(True)
+    plt.savefig(out_dir+filename+str(int(psi_dict['f_1']))+'pressures.svg')
+    plt.savefig(out_dir+filename+str(int(psi_dict['f_1']))+'pressures.pdf')
+    plt.savefig(out_dir+filename+str(int(psi_dict['f_1']))+'pressures.eps')
+    #
+    # plot turbulence things
+    plt.figure(7,figsize=(figx,figy))
+    plt.plot(time,vi,'r',linewidth=lw,path_effects=[pe.Stroke(linewidth=lw+2,foreground='k'),pe.Normal()],label=r'$V_i$')
+    plt.plot(time,ve,'b',linewidth=lw,path_effects=[pe.Stroke(linewidth=lw+2,foreground='k'),pe.Normal()],label=r'$V_e$')
+    plt.plot(time,abs(ch),'c',linewidth=lw,path_effects=[pe.Stroke(linewidth=lw+2,foreground='k'),pe.Normal()],label=r'$V \cdot B$')
+    plt.plot(time,abs(vxb),'g',linewidth=lw,path_effects=[pe.Stroke(linewidth=lw+2,foreground='k'),pe.Normal()],label=r'$V\times B$')
+    plt.plot(time,mach,'m',linewidth=lw,path_effects=[pe.Stroke(linewidth=lw+2,foreground='k'),pe.Normal()],label=r'$M$')
+    plt.plot(time,alfmach,'orange',linewidth=lw,path_effects=[pe.Stroke(linewidth=lw+2,foreground='k'),pe.Normal()],label=r'$M_A$')
+    plt.yscale('log')
+    plt.legend(loc='upper right',framealpha=1.0,fontsize=ls)
+    plt.ylim(1e-3,1e5)
+    ax = plt.gca()
+    ax.tick_params(axis='both', which='major', labelsize=ts)
+    ax.tick_params(axis='both', which='minor', labelsize=ts)
+    plt.grid(True)
+    plt.savefig(out_dir+filename+str(int(psi_dict['f_1']))+'turbulence.svg')
+    plt.savefig(out_dir+filename+str(int(psi_dict['f_1']))+'turbulence.pdf')
+    plt.savefig(out_dir+filename+str(int(psi_dict['f_1']))+'turbulence.eps')

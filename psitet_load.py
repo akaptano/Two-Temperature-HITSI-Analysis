@@ -224,9 +224,9 @@ def load_psitet_new(fname, runfolder, f_1, is_HITSI3, limits):
                 B_pol = np.sin(
                     pangle) * (rhat[0] * Bx + rhat[1] * By) + np.cos(pangle) * Bz
                 B_tor = that[0] * Bx + that[1] * By
-                A['sp_Bx'] = Bx
-                A['sp_By'] = By
-                A['sp_Bz'] = Bz
+                A['sp_Bx'] = np.transpose(Bx)
+                A['sp_By'] = np.transpose(By)
+                A['sp_Bz'] = np.transpose(Bz)
                 A['sp_Bpol'] = np.transpose(B_pol)
                 A['sp_Btor'] = np.transpose(B_tor)
                 A['sp_time'] = A.pop('time')

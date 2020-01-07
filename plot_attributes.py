@@ -12,6 +12,9 @@ import matplotlib.patheffects as pe
 rcParams.update({'figure.autolayout': True})
 from numpy import pi
 import numpy as np
+#matplotlib.rc('text',usetex=True)
+#matplotlib.rcParams['text.latex.preamble'] = [r"\usepackage{amsmath}"]
+k_boltz = 1.6*1e-19
 ## Default output directory for all images and movies
 out_dir = 'Pictures/'
 ## Toroidal angle labels for the (R,phi) contour plots

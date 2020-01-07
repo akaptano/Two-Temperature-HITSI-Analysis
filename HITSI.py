@@ -9,7 +9,9 @@ from utilities import SVD, \
      plot_chronos, plot_itor, \
      plot_temperatures, plot_nFIR, \
      plot_centroid, plot_power_balance, \
-     plot_individual_heat_flows
+     plot_individual_heat_flows, plot_navg, \
+     plot_pressure, toroidal_modes_sp, plot_powers, \
+     plot_all_heat_flows
 import click
 import os
 
@@ -59,7 +61,7 @@ def analysis(directory,filenames,freqs,limits,trunc):
         for i in range(len(freqs)):
             f_1 = np.atleast_1d(freqs[i])
             print(i,j,filename,f_1,is_HITSI3)
-            if '2T' in filename:
+            if '2T' in filename and 'PSI' in filename:
                 temp_dict = loadshot(filename.rsplit('2T', 1)[0]+'2T',directory, \
                     int(f_1),True,True,is_HITSI3,limits)
             elif filename[0:3]=='PSI':
@@ -109,10 +111,13 @@ def analysis(directory,filenames,freqs,limits,trunc):
         plot_temperatures(total[i],subpl3,color,filenames[color_ind])
         plot_nFIR(total[i],subpl3,color,filenames[color_ind])
         plot_centroid(total[i],subpl3,color,filenames[color_ind])
-        if '2T' in filenames[color_ind]:
-            plot_power_balance(total[i],subpl3,filenames[color_ind])
-            plot_individual_heat_flows(total[i],colors2T[T2_ind])
+        if '2T' in filenames[color_ind] and 'PSI' in filenames[color_ind]:
+            #plot_powers(total[i],filenames[color_ind],directory)
+            #plot_navg(total[i],subpl3,color,filenames[color_ind])
+            #plot_pressure(total[i],subpl3,color,filenames[color_ind])
+            #plot_power_balance(total[i],subpl3,filenames[color_ind])
+            plot_all_heat_flows(total[i],colors2T[T2_ind],filenames[color_ind],directory)
             T2_ind = T2_ind + 1
-
+            toroidal_modes_sp(total[i],3)
 if __name__ == '__main__':
     analysis()
