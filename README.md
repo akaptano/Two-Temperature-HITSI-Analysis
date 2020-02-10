@@ -6,10 +6,9 @@ Everything is in python and function/variable definitions are described in a dox
 
 # Getting Started
 
-Compatibility requires installation of Python 3.7, and the python packages scipy, numpy, matplotlib, click, and numba. 
-The numba package is only necessary if a DMD analysis is desired on the data. These packages can be installed through pip or through an anaconda interface. 
+Compatibility requires installation of Python 3.7, and the python packages scipy, numpy, matplotlib, and click. These packages can be installed through pip or through an anaconda interface. 
 
-This code uses the "click" module for command line arguments and the "numba" module to parallelize some of the code related to the DMD. Much of the code is specific to HIT-SI format files. To see a list of the command line options, type "python HITSI.py --help". By default, the movies and pictures are written out to a directory called Pictures/. Create this directory or change the default in order to avoid errors. 
+This code uses the "click" module for command line arguments. Much of the code is specific to HIT-SI format files from PSI-Tet and NIMROD. To see a list of the command line options, type "python HITSI.py --help". By default, the movies and pictures are written out to a directory called Pictures/. Create this directory or change the default in order to avoid errors. 
 
 # Reproducing Results
 
@@ -17,7 +16,7 @@ All the .mat files for the analysis in the two-temperature paper are freely avai
 
 # License 
 
-All files in this repository are available under the MIT License. Feel free to use and repurpose the code as you please. Variable projection routines for the DMD in this repository were modified from matlab (https://github.com/duqbo/optdmd) to python, and parallelized. 
+All files in this repository are available under the MIT License. Feel free to use and repurpose the code as you please.
 
 The MIT License (MIT)
 
