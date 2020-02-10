@@ -1,17 +1,16 @@
 ## @package HITSI
 ## Takes a large list of command line arguments
 ## and collects the files in dictionaries,
-## gets their SVD,
-## and then plots all the results.
+## and then performs whatever plotting/analysis
+## is desired. Note that much of this
+## file and organization is specific to HIT-SI,
+## and the NIMROD and PSI-Tet codes
 from plot_attributes import *
 from psitet_load import loadshot
 from utilities import SVD, \
-     plot_chronos, plot_itor, \
-     plot_temperatures, plot_nFIR, \
-     plot_centroid, plot_power_balance, \
-     plot_individual_heat_flows, plot_navg, \
-     plot_pressure, toroidal_modes_sp, plot_powers, \
-     plot_all_heat_flows
+     plot_itor, plot_nFIR, plot_navg, \
+     plot_temperatures, plot_powers, \
+     plot_centroid, plot_all_heat_flows
 import click
 import os
 
@@ -51,6 +50,7 @@ def analysis(directory,filenames,freqs,limits,trunc):
     print('Time limits for each of the files = ',limits)
 
     filenames=np.atleast_1d(filenames)
+    print(filenames)
     freqs=np.atleast_1d(freqs)
     total = []
     for j in range(len(filenames)):
@@ -91,6 +91,7 @@ def analysis(directory,filenames,freqs,limits,trunc):
         if subpl3-1 == 0 and i != 0:
             color_ind = color_ind + 1
         color = colors2T[color_ind]
+        # Setup large number of figures and subplots
         plt.figure(75000,figsize=(figx, figy))
         plt.subplot(subpl1,subpl2,subpl3)
         plt.figure(85000,figsize=(figx, figy))
@@ -99,25 +100,39 @@ def analysis(directory,filenames,freqs,limits,trunc):
         plt.subplot(subpl1,subpl2,subpl3)
         plt.figure(105000,figsize=(figx, figy))
         plt.subplot(subpl1,subpl2,subpl3)
+        plt.figure(105005,figsize=(figx, figy))
+        plt.subplot(subpl1,subpl2,subpl3)
         plt.figure(115000,figsize=(figx, figy))
         plt.subplot(subpl1,subpl2,subpl3)
         plt.figure(125000,figsize=(figx, figy))
         plt.subplot(subpl1,subpl2,subpl3)
+        plt.figure(125005,figsize=(figx, figy))
+        plt.subplot(subpl1,subpl2,subpl3)
         plt.figure(135000,figsize=(figx, figy))
         plt.subplot(subpl1,subpl2,subpl3)
-        print(i,np.shape(total),color,len(filenames),color_ind)
+        plt.figure(135005,figsize=(figx, figy))
+        plt.subplot(subpl1,subpl2,subpl3)
+        plt.figure(145000,figsize=(figx, figy))
+        plt.subplot(subpl1,subpl2,subpl3)
+        plt.figure(155000,figsize=(figx, figy))
+        plt.subplot(subpl1,subpl2,subpl3)
+        plt.figure(165000,figsize=(figx, figy))
+        plt.subplot(subpl1,subpl2,subpl3)
+        plt.figure(175000,figsize=(figx, figy))
+        plt.subplot(subpl1,subpl2,subpl3)
+        plt.figure(185000,figsize=(figx, figy))
+        plt.subplot(subpl1,subpl2,subpl3)
+        plt.figure(195000,figsize=(figx, figy))
+        plt.subplot(subpl1,subpl2,subpl3)
+        # Plot everything
         plot_itor(total[i],subpl3,color,filenames[color_ind])
-        #plot_chronos(total[i],(i%len(freqs))+1,color,filenames[color_ind])
         plot_temperatures(total[i],subpl3,color,filenames[color_ind])
         plot_nFIR(total[i],subpl3,color,filenames[color_ind])
         plot_centroid(total[i],subpl3,color,filenames[color_ind])
         if '2T' in filenames[color_ind] and 'PSI' in filenames[color_ind]:
-            #plot_powers(total[i],filenames[color_ind],directory)
-            #plot_navg(total[i],subpl3,color,filenames[color_ind])
-            #plot_pressure(total[i],subpl3,color,filenames[color_ind])
-            #plot_power_balance(total[i],subpl3,filenames[color_ind])
+            plot_powers(total[i],subpl3,filenames[color_ind],directory)
+            plot_navg(total[i],subpl3,color,filenames[color_ind])
             plot_all_heat_flows(total[i],colors2T[T2_ind],filenames[color_ind],directory)
             T2_ind = T2_ind + 1
-            toroidal_modes_sp(total[i],3)
 if __name__ == '__main__':
     analysis()

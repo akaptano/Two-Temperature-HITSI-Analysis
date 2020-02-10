@@ -12,8 +12,6 @@ import matplotlib.patheffects as pe
 rcParams.update({'figure.autolayout': True})
 from numpy import pi
 import numpy as np
-#matplotlib.rc('text',usetex=True)
-#matplotlib.rcParams['text.latex.preamble'] = [r"\usepackage{amsmath}"]
 k_boltz = 1.6*1e-19
 ## Default output directory for all images and movies
 out_dir = 'Pictures/'
@@ -26,25 +24,25 @@ mu0 = 4*pi*10**(-7)
 ## Fontsize for axis labels and titles
 fs = 40
 ## Fontsize for axis ticks
-ts = 30
+ts = 36
 ## Fontsize for pyplot legends
 ls = 24
 ## Markersize for scatter plots
 ms = 18
 ## Linewidth for line plots
-lw = 3
+lw = 9
 ## Figure size in horizontal dir
 figx = 14
 ## Figure size in vertical dir
 figy = 10
 ## pixels per inch
-ppi = 100
+ppi = 200
 ## How transparent to make scatter plots with multiple entries
 transparency = 1.0
 ## Colors to distinguish between dictionaries
 Colors = np.random.rand(100,3)
 ## colors specifically for plotting two-temperature MHD results
-colors2T = ['r','b','g','m','c']
+colors2T = ['r','b','g','orange','c']
 ## Styles to distinguish between discharges with different
 ## injector frequencies
 Styles = ['dashed','dotted','-.','solid',':']

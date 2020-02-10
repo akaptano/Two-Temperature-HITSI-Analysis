@@ -438,12 +438,12 @@ def imp_correction(tree,shot,corr_probe,corr_probe_shot,probe,array,cb_field):
                 R_T = 50.0 # DAFI variations from 50 Ohms already accounted for
                 calFac = (R_T + R_P) / R_T
                 cb_field[n,m,:] = calFac * cb_field[n,m,:]
-    elif corr_probe_res == 2:
+    elif corr_probe == 2:
         incorrectR_P = np.zeros((3, N))
         for n in range(3):
             for m in range(N):
-                nodeR_P = '\B_IMP_'+array+'_'+ \
-                    dir(n)+probe[m]+':R_P'
+                nodeR_P = 'B_IMP_'+array+'_'+ \
+                    dir[n]+probe[m]+':R_P'
                 try:
                     R_P = tree.getNode('\\'+nodeR_P).data()
                     pass
@@ -459,13 +459,13 @@ def imp_correction(tree,shot,corr_probe,corr_probe_shot,probe,array,cb_field):
         R_P = np.zeros((3, N))
         for n in range(3):
             for m in range(N):
-                nodeR_CAB = '\B_IMP_'+array+'_'+ \
-                    dir(n)+probe[m]+':R_CAB'
+                nodeR_CAB = 'B_IMP_'+array+'_'+ \
+                    dir[n]+probe[m]+':R_CAB'
                 try:
-                    R_CAB = tree.getNode('\\'+nodeR_CAB).data()
+                    R_CAB = new_tree.getNode('\\'+nodeR_CAB).data()
                     pass
                 except MDSplus.TreeNODATA:
-                    R_P = 4
+                    R_CAB = 4
                     print('No R_CAB data for node: '+ \
                         nodeR_CAB+', assuming R_P = 4')
                     pass
@@ -482,7 +482,3 @@ def imp_correction(tree,shot,corr_probe,corr_probe_shot,probe,array,cb_field):
 
     return imp_Brad, imp_Bpol, imp_Btor
 
-createShotData('129213')
-createShotData('129214')
-createShotData('129215')
-createShotData('129225')
